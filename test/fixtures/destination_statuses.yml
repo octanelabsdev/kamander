@@ -1,0 +1,21 @@
+track_planner_production_status:
+  app_destination: track_planner_production
+  state: running
+  checked_at: <%= 20.seconds.ago %>
+  containers:
+    - { name: "track-planner-web-production-a1b2c3d", kind: "app", label: "web", host: "5.78.71.207", state: "running", status_text: "Up 3 hours", image: "track-planner:a1b2c3d", version: "a1b2c3d" }
+    - { name: "track-planner-db", kind: "accessory", label: "db", host: "5.78.71.207", state: "running", status_text: "Up 3 hours", image: "postgres:16", version: }
+    - { name: "kamal-proxy", kind: "proxy", label: "kamal-proxy", host: "5.78.71.207", state: "running", status_text: "Up 5 days", image: "basecamp/kamal-proxy:latest", version: }
+  error:
+
+track_planner_staging_status:
+  app_destination: track_planner_staging
+  state: down
+  checked_at: <%= 40.seconds.ago %>
+  containers:
+    - { name: "track-planner-web-staging-a1b2c3d", kind: "app", label: "web", host: "5.78.71.208", state: "exited", status_text: "Exited (1) 12 minutes ago", image: "track-planner:a1b2c3d", version: "a1b2c3d" }
+    - { name: "kamal-proxy", kind: "proxy", label: "kamal-proxy", host: "5.78.71.208", state: "running", status_text: "Up 5 days", image: "basecamp/kamal-proxy:latest", version: }
+  error:
+
+# contractor_link_base intentionally has no status row here — leaves an
+# "unknown" case (rows are lazily created by the writer; no row renders unknown).
