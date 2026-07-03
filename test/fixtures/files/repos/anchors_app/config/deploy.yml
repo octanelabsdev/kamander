@@ -1,0 +1,14 @@
+service: anchors_app
+image: kamander/anchors_app
+
+x-defaults: &defaults
+  user: deploy
+
+ssh:
+  <<: *defaults
+
+servers:
+  web: &web_servers
+    - 10.0.3.5
+    - 10.0.3.6
+  worker: *web_servers

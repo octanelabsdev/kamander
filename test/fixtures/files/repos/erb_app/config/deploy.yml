@@ -1,0 +1,6 @@
+service: erb_app
+image: kamander/erb_app
+
+servers:
+  web:
+    - <%= ENV.fetch("KAMANDER_TEST_HOST", "10.0.0.9") %>

@@ -1,0 +1,6 @@
+servers:
+  web:
+    - 10.0.2.10
+
+proxy:
+  host: staging.multidest.example.com

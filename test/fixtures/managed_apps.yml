@@ -1,0 +1,29 @@
+track_planner:
+  repo_path: /Users/dev/Development/track-planner
+  service_name: track-planner
+  display_name:
+  status: managed
+  position: 0
+  proxy_host:
+  discovered_at: <%= 2.days.ago %>
+  last_scanned_at: <%= 1.hour.ago %>
+
+contractor_link:
+  repo_path: /Users/dev/Development/contractor-link
+  service_name: contractor_link
+  display_name:
+  status: discovered
+  position: 0
+  proxy_host: contractor-link.example.com
+  discovered_at: <%= 1.hour.ago %>
+  last_scanned_at: <%= 1.hour.ago %>
+
+old_project:
+  repo_path: /Users/dev/Development/old-project
+  service_name: old_project
+  display_name: Old Project (retired)
+  status: hidden
+  position: 1
+  proxy_host:
+  discovered_at: <%= 30.days.ago %>
+  last_scanned_at: <%= 10.days.ago %>

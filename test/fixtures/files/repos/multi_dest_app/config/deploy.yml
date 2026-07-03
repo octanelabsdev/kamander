@@ -1,0 +1,5 @@
+service: multi_dest_app
+image: kamander/multi_dest_app
+
+ssh:
+  user: deploy
