@@ -4,7 +4,7 @@ class Kamander::Kamal::ConfigScannerTest < ActiveSupport::TestCase
   test "discovers every repo with deploy.yml" do
     repo_names = scan.map { |app| File.basename(app.repo_path) }
     assert_equal %w[anchors_app empty_overlay_app erb_app malformed_app multi_dest_app
-                    no_service_app partial_failure_app simple_app], repo_names.sort
+                    no_service_app partial_failure_app service_override_app simple_app], repo_names.sort
   end
 
   test "base-only single destination" do
@@ -92,6 +92,13 @@ class Kamander::Kamal::ConfigScannerTest < ActiveSupport::TestCase
     assert_not production.error?
     assert_equal({ "web" => [ "10.0.7.10" ] }, production.servers)
     assert_equal "deploy", production.ssh_user
+  end
+
+  test "a destination that overrides service captures its own service name" do
+    app = app_for("service_override_app")
+
+    assert_equal "service_override_app", app.service_name
+    assert_equal "service_override_app_staging", app.destinations.sole.service_name
   end
 
   test "dir without deploy.yml ignored" do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_03_062047) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_03_073049) do
   create_table "app_destinations", force: :cascade do |t|
     t.json "accessory_names", default: [], null: false
     t.string "config_file", null: false
@@ -19,6 +19,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_062047) do
     t.string "name"
     t.string "proxy_host"
     t.json "servers", default: {}, null: false
+    t.string "service_name", null: false
     t.string "ssh_user"
     t.datetime "updated_at", null: false
     t.index ["managed_app_id", "config_file"], name: "index_app_destinations_on_managed_app_id_and_config_file", unique: true

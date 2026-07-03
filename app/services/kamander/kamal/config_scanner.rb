@@ -54,7 +54,7 @@ module Kamander
 
         extract_destination(name: name, config_file: config_file, config: merged)
       rescue ParseError => e
-        ScannedDestination.new(name: name, config_file: config_file, servers: {}, accessory_names: [],
+        ScannedDestination.new(name: name, service_name: nil, config_file: config_file, servers: {}, accessory_names: [],
                                 ssh_user: nil, proxy_host: nil, error: e.message)
       end
 
@@ -65,6 +65,7 @@ module Kamander
       def extract_destination(name:, config_file:, config:)
         ScannedDestination.new(
           name: name,
+          service_name: config["service"],
           config_file: config_file,
           servers: normalize_servers(config["servers"]),
           accessory_names: (config["accessories"] || {}).keys,
