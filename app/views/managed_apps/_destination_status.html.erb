@@ -1,0 +1,62 @@
+<%# Wrapper id is the broadcast target for DestinationStatus#broadcast_status — everything
+    that should repaint on every poll lives inside it, including the state pill itself. %>
+<div id="<%= dom_id(app_destination, :status) %>" class="flex flex-col gap-3">
+  <% status = app_destination.destination_status %>
+
+  <div class="flex items-center justify-between">
+    <%= render "managed_apps/status_pill", state: status&.state || "unknown", title: status&.error %>
+    <span class="text-xs text-neutral-500"><%= staleness_in_words(status&.checked_at) %></span>
+  </div>
+
+  <% if status.nil? %>
+    <p class="text-sm italic text-neutral-600">No status data yet — refresh to check.</p>
+  <% elsif status.unreachable? %>
+    <p class="whitespace-pre-line rounded-md border border-red-900/50 bg-red-950/30 px-3 py-2 text-sm text-red-300"><%= status.error %></p>
+  <% else %>
+    <p class="text-sm text-neutral-400">
+      Deployed:
+      <% if (versions = deployed_versions(status)).any? %>
+        <%= safe_join(versions.map { |version| short_sha(version) }, ", ") %>
+      <% else %>
+        unknown
+      <% end %>
+    </p>
+
+    <%= render "managed_apps/server_matrix", app_destination: app_destination, status: status %>
+
+    <% if app_destination.accessory_names.any? %>
+      <div>
+        <h3 class="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">Accessories</h3>
+        <div class="flex flex-col gap-1">
+          <% app_destination.accessory_names.each do |accessory_name| %>
+            <%= render "managed_apps/container_row",
+                  container: accessory_container(status, app_destination, accessory_name), label: accessory_name %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if (proxies = containers_by(status, kind: "proxy")).any? %>
+      <div>
+        <h3 class="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">Proxy (kamal-proxy)</h3>
+        <div class="flex flex-col gap-1">
+          <% proxies.each do |container| %>
+            <%= render "managed_apps/container_row", container: container, label: container["host"] %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if (unattributed = containers_by(status, kind: "unattributed")).any? %>
+      <div>
+        <h3 class="mb-1 text-xs font-medium uppercase tracking-wide text-amber-500">Unattributed containers</h3>
+        <p class="mb-1 text-xs text-neutral-500">Running on this host, not matched to a known destination.</p>
+        <div class="flex flex-col gap-1">
+          <% unattributed.each do |container| %>
+            <%= render "managed_apps/container_row", container: container, label: container["service"] || container["name"] %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

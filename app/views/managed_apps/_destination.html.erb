@@ -4,25 +4,15 @@
     <span class="text-xs text-neutral-500"><%= destination.config_file %></span>
   </header>
 
-  <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-    <dt class="text-neutral-500">Servers</dt>
-    <dd class="text-neutral-300">
-      <% if destination.servers.any? %>
-        <% destination.servers.each do |role, ips| %>
-          <div><span class="text-neutral-500"><%= role %>:</span> <%= ips.join(", ") %></div>
-        <% end %>
-      <% else %>
-        <span class="text-neutral-600">none</span>
-      <% end %>
-    </dd>
-
-    <dt class="text-neutral-500">Accessories</dt>
-    <dd class="text-neutral-300"><%= destination.accessory_names.join(", ").presence || "none" %></dd>
-
+  <%# Servers/accessories are covered live (with state) below by destination_status —
+      listing them again here as static config would just be the same names twice. %>
+  <dl class="mb-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
     <dt class="text-neutral-500">SSH user</dt>
     <dd class="text-neutral-300"><%= destination.ssh_user.presence || "default" %></dd>
 
     <dt class="text-neutral-500">Proxy host</dt>
     <dd class="text-neutral-300"><%= destination.proxy_host.presence || "none" %></dd>
   </dl>
+
+  <%= render "managed_apps/destination_status", app_destination: destination %>
 </div>

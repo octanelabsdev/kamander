@@ -35,7 +35,11 @@ port ENV.fetch("PORT", 3000)
 plugin :tmp_restart
 
 # Run the Solid Queue supervisor inside of Puma for single-server deployments.
-plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
+# Defaults on in development too — recurring.yml's status_poll needs a
+# supervisor running, and in-puma is process-manager-agnostic (works whether
+# you're on bin/dev, plain `rails server`, or corral) without a second
+# process to remember to start. Production still opts in explicitly.
+plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"] || ENV.fetch("RAILS_ENV", "development") == "development"
 
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.

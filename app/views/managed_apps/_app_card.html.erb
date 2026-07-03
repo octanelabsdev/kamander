@@ -5,30 +5,35 @@
         <h2 class="text-lg font-medium text-neutral-100"><%= managed_app.display_label %></h2>
         <p class="text-sm text-neutral-500"><%= managed_app.service_name %></p>
       </div>
-      <span class="flex shrink-0 items-center gap-1.5 text-xs text-neutral-500" title="Status unknown">
-        <span class="h-2 w-2 rounded-full bg-neutral-600"></span>
-        status unknown
-      </span>
+      <span class="mt-1 h-3 w-3 shrink-0 rounded-full <%= status_dot_color(managed_app.status_rollup) %>"
+            title="<%= status_label(managed_app.status_rollup) %>"></span>
     </header>
 
-    <div class="flex flex-col gap-1 text-sm text-neutral-400">
+    <div class="flex flex-col gap-1.5">
       <% if managed_app.app_destinations.empty? %>
-        <p class="italic text-neutral-600">No destinations found on last scan.</p>
+        <p class="text-sm italic text-neutral-600">No destinations found on last scan.</p>
       <% else %>
         <% managed_app.app_destinations.each do |destination| %>
-          <p>
-            <span class="font-medium text-neutral-300"><%= destination.name || "base" %></span>
-            <%= destination.server_ips.join(", ").presence || "no servers" %>
-            <% if destination.proxy_host.present? %>
-              &middot; <%= destination.proxy_host %>
+          <% status = destination.destination_status %>
+          <% pill_text = capture do %>
+            <%= destination.name || "base" %>
+            <% if status.nil? %>
+              &middot; <%= status_label("unknown") %>
+            <% else %>
+              <% if (versions = deployed_versions(status)).any? %>
+                &middot; <%= short_sha(versions.first) %>
+              <% end %>
+              <% if (summary = role_summary(destination)) %>
+                &middot; <%= summary %>
+              <% end %>
             <% end %>
-            <% if destination.accessory_names.any? %>
-              &middot; <%= destination.accessory_names.join(", ") %>
-            <% end %>
-          </p>
+          <% end %>
+          <%= render "managed_apps/status_pill", state: status&.state || "unknown", text: pill_text, title: status&.error %>
         <% end %>
       <% end %>
     </div>
+
+    <p class="text-xs text-neutral-500"><%= staleness_in_words(managed_app_checked_at(managed_app)) %></p>
 
     <details class="text-sm">
       <summary class="cursor-pointer text-neutral-400 hover:text-neutral-200">Rename</summary>

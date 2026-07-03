@@ -41,4 +41,21 @@ class ManagedAppTest < ActiveSupport::TestCase
     assert_nil app.display_name
     assert_equal app.service_name, app.display_label
   end
+
+  test "status_rollup surfaces the worst state across destinations" do
+    assert_equal "down", managed_apps(:track_planner).status_rollup
+  end
+
+  test "status_rollup treats a destination with no status row as unknown" do
+    assert_equal "unknown", managed_apps(:contractor_link).status_rollup
+  end
+
+  test "status_rollup ranks unreachable above down" do
+    destination_statuses(:track_planner_production_status).update!(state: :unreachable)
+    assert_equal "unreachable", managed_apps(:track_planner).status_rollup
+  end
+
+  test "STATUS_SEVERITY tracks the DestinationStatus state enum's definition order" do
+    assert_equal DestinationStatus.states.keys, ManagedApp::STATUS_SEVERITY
+  end
 end

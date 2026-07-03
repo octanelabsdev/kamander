@@ -1,0 +1,6 @@
+<%# locals: state (required), text (optional override; defaults to the state's human label), title (optional tooltip, e.g. a raw SSH error) %>
+<%= tag.span class: "inline-flex items-center gap-1.5 rounded-full border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-xs text-neutral-300",
+      title: local_assigns[:title] do %>
+  <span class="h-2 w-2 shrink-0 rounded-full <%= status_dot_color(state) %>"></span>
+  <%= local_assigns[:text].presence || status_label(state) %>
+<% end %>

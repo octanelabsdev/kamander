@@ -2,6 +2,7 @@ track_planner_production:
   managed_app: track_planner
   name: production
   config_file: deploy.production.yml
+  service_name: track-planner
   servers: { web: ["203.0.113.10"] }
   accessory_names: ["db", "caddy", "domain-validator"]
   ssh_user: deploy
@@ -11,6 +12,7 @@ track_planner_staging:
   managed_app: track_planner
   name: staging
   config_file: deploy.staging.yml
+  service_name: track-planner
   servers: { web: ["203.0.113.11"] }
   accessory_names: []
   ssh_user: deploy
@@ -20,6 +22,7 @@ contractor_link_base:
   managed_app: contractor_link
   name:
   config_file: deploy.yml
+  service_name: contractor_link
   servers: { web: ["3.14.15.92"] }
   accessory_names: []
   ssh_user:

@@ -37,4 +37,28 @@ class AppDestinationTest < ActiveSupport::TestCase
     assert app_destinations(:contractor_link_base).base?
     assert_not app_destinations(:track_planner_production).base?
   end
+
+  test "effective_ssh_user prefers the cached ssh_user over the default" do
+    destination = app_destinations(:track_planner_production)
+    destination.ssh_user = "custom-user"
+    assert_equal "custom-user", destination.effective_ssh_user
+  end
+
+  test "effective_ssh_user falls back to the setting default when blank" do
+    destination = app_destinations(:contractor_link_base)
+    assert_nil destination.ssh_user
+    assert_equal Setting.current.default_ssh_user, destination.effective_ssh_user
+  end
+
+  test "a destination's effective service prefers its own captured service name" do
+    destination = app_destinations(:contractor_link_base)
+    destination.service_name = "contractor_link_staging"
+    assert_equal "contractor_link_staging", destination.effective_service
+  end
+
+  test "falls back to the app's service name when the destination's is blank" do
+    destination = app_destinations(:contractor_link_base)
+    destination.service_name = ""
+    assert_equal managed_apps(:contractor_link).service_name, destination.effective_service
+  end
 end

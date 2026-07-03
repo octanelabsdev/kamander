@@ -1,11 +1,12 @@
 class ManagedAppsController < ApplicationController
-  before_action :set_managed_app, only: %i[show update destroy]
+  before_action :set_managed_app, only: %i[update destroy]
 
   def index
-    @managed_apps = ManagedApp.managed.ordered.includes(:app_destinations)
+    @managed_apps = ManagedApp.managed.ordered.includes(app_destinations: :destination_status)
   end
 
   def show
+    @managed_app = ManagedApp.includes(app_destinations: :destination_status).find(params[:id])
   end
 
   def confirm
