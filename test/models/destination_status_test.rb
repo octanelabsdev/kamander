@@ -31,9 +31,10 @@ class DestinationStatusTest < ActiveSupport::TestCase
     status = destination_statuses(:track_planner_production_status)
     assert_equal 3, status.containers.size
 
-    web = status.containers.find { |container| container["label"] == "web" }
-    assert_equal "track-planner-web-production-a1b2c3d", web["name"]
+    web = status.containers.find { |container| container["role"] == "web" }
+    assert_equal "track-planner-web-production-63cea7c46926aa7437725417bd51fb40b95cb80a", web["name"]
+    assert_equal "track-planner", web["service"]
     assert_equal "running", web["state"]
-    assert_equal "a1b2c3d", web["version"]
+    assert_equal "63cea7c46926aa7437725417bd51fb40b95cb80a", web["version"]
   end
 end

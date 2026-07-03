@@ -12,7 +12,7 @@ class Kamander::Kamal::StatusWriterTest < ActiveSupport::TestCase
     status = destination.reload.destination_status
     assert_equal "running", status.state
     assert_equal 1, status.containers.size
-    assert_equal "web", status.containers.first["label"]
+    assert_equal "web", status.containers.first["role"]
     assert_equal "a1a1a1a", status.containers.first["version"]
   end
 
@@ -53,8 +53,9 @@ class Kamander::Kamal::StatusWriterTest < ActiveSupport::TestCase
 
     def observed_container
       Kamander::Kamal::ObservedContainer.new(
-        name: "contractor_link-web-a1a1a1a", kind: :app, label: "web", host: "3.14.15.92",
-        state: :running, status_text: "Up 10 minutes", image: "contractor_link:latest", version: "a1a1a1a"
+        name: "contractor_link-web-a1a1a1a", service: "contractor_link", role: "web", destination: nil,
+        kind: :app, host: "3.14.15.92", state: :running, status_text: "Up 10 minutes",
+        image: "contractor_link:latest", version: "a1a1a1a"
       )
     end
 end
