@@ -51,6 +51,24 @@ class DiscoveringAppsTest < ApplicationSystemTestCase
     assert_text "staging"
   end
 
+  test "operator forgets an app from the dashboard and it disappears" do
+    app = managed_apps(:track_planner)
+
+    visit root_path
+    assert_text app.display_label
+
+    accept_confirm do
+      click_on "Forget"
+    end
+
+    assert_current_path root_path
+    # The flash ("track-planner forgotten.") legitimately echoes the label,
+    # so assert the card itself is gone rather than the label text.
+    assert_no_selector "##{ActionView::RecordIdentifier.dom_id(app)}"
+    assert_no_text "Content missing"
+    assert_text "No apps on the dashboard yet"
+  end
+
   test "operator renames an app inline from the dashboard" do
     app = managed_apps(:track_planner)
 
