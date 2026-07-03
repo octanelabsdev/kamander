@@ -1,12 +1,3 @@
-track_planner_base:
-  managed_app: track_planner
-  name:
-  config_file: deploy.yml
-  servers: { web: ["5.78.71.207"] }
-  accessory_names: []
-  ssh_user: deploy
-  proxy_host: track-planner.example.com
-
 track_planner_production:
   managed_app: track_planner
   name: production
@@ -16,6 +7,15 @@ track_planner_production:
   ssh_user: deploy
   proxy_host: track-planner.example.com
 
+track_planner_staging:
+  managed_app: track_planner
+  name: staging
+  config_file: deploy.staging.yml
+  servers: { web: ["5.78.71.208"] }
+  accessory_names: []
+  ssh_user: deploy
+  proxy_host: staging.track-planner.example.com
+
 contractor_link_base:
   managed_app: contractor_link
   name:
@@ -23,4 +23,4 @@ contractor_link_base:
   servers: { web: ["3.14.15.92"] }
   accessory_names: []
   ssh_user:
-  proxy_host:
+  proxy_host: contractor-link.example.com

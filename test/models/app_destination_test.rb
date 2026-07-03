@@ -8,11 +8,11 @@ class AppDestinationTest < ActiveSupport::TestCase
   end
 
   test "requires config_file to be unique within a managed app" do
-    duplicate = AppDestination.new(managed_app: managed_apps(:track_planner), config_file: "deploy.yml")
+    duplicate = AppDestination.new(managed_app: managed_apps(:track_planner), config_file: "deploy.production.yml")
     assert_not duplicate.valid?
     assert_includes duplicate.errors[:config_file], "has already been taken"
 
-    different_app = AppDestination.new(managed_app: managed_apps(:old_project), config_file: "deploy.yml")
+    different_app = AppDestination.new(managed_app: managed_apps(:old_project), config_file: "deploy.production.yml")
     assert different_app.valid?
   end
 
@@ -34,7 +34,7 @@ class AppDestinationTest < ActiveSupport::TestCase
   end
 
   test "the base config destination knows it is the base" do
-    assert app_destinations(:track_planner_base).base?
+    assert app_destinations(:contractor_link_base).base?
     assert_not app_destinations(:track_planner_production).base?
   end
 end

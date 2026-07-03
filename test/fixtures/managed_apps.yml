@@ -4,7 +4,7 @@ track_planner:
   display_name:
   status: managed
   position: 0
-  proxy_host: track-planner.example.com
+  proxy_host:
   discovered_at: <%= 2.days.ago %>
   last_scanned_at: <%= 1.hour.ago %>
 
@@ -14,7 +14,7 @@ contractor_link:
   display_name:
   status: discovered
   position: 0
-  proxy_host:
+  proxy_host: contractor-link.example.com
   discovered_at: <%= 1.hour.ago %>
   last_scanned_at: <%= 1.hour.ago %>
 
