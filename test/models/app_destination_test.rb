@@ -38,6 +38,20 @@ class AppDestinationTest < ActiveSupport::TestCase
     assert_not app_destinations(:track_planner_production).base?
   end
 
+  test "a base destination counts as production" do
+    assert app_destinations(:contractor_link_base).production?
+  end
+
+  test "a destination named prod counts as production" do
+    destination = app_destinations(:track_planner_staging)
+    destination.name = "prod"
+    assert destination.production?
+  end
+
+  test "staging does not count as production" do
+    assert_not app_destinations(:track_planner_staging).production?
+  end
+
   test "effective_ssh_user prefers the cached ssh_user over the default" do
     destination = app_destinations(:track_planner_production)
     destination.ssh_user = "custom-user"

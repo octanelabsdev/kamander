@@ -30,4 +30,32 @@
       <%= render "managed_apps/destination", destination: destination %>
     <% end %>
   </section>
+
+  <section class="mt-6">
+    <h2 class="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">Resource usage</h2>
+    <p class="mb-2 text-xs text-neutral-600">CPU and memory for containers currently running and reachable over SSH.</p>
+    <%= turbo_frame_tag :resource_usage, class: "block aria-busy:opacity-50 transition-opacity" do %>
+      <%= link_to "Load resource usage", resource_usage_managed_app_path(@managed_app),
+            data: { turbo_frame: :resource_usage },
+            class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+    <% end %>
+  </section>
+
+  <% if @managed_app.operations.recent.any? %>
+    <section class="mt-6">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Recent operations</h2>
+      <div class="flex flex-col gap-1">
+        <% @managed_app.operations.recent.limit(5).each do |operation| %>
+          <%= link_to operation_path(operation),
+                class: "flex items-center justify-between rounded-md border border-neutral-800 px-3 py-2 text-sm hover:bg-neutral-900" do %>
+            <span class="text-neutral-300"><%= operation.verb.capitalize %> &middot; <%= operation.app_destination.name || "base" %></span>
+            <span class="flex items-center gap-1.5 text-xs text-neutral-500">
+              <span class="h-2 w-2 rounded-full <%= operation_status_color(operation.status) %>"></span>
+              <%= operation_status_label(operation.status) %>
+            </span>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
 </section>

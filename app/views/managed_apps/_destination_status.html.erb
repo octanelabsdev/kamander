@@ -8,6 +8,8 @@
     <span class="text-xs text-neutral-500"><%= staleness_in_words(status&.checked_at) %></span>
   </div>
 
+  <%= render "managed_apps/lifecycle_buttons", destination: app_destination %>
+
   <% if status.nil? %>
     <p class="text-sm italic text-neutral-600">No status data yet — refresh to check.</p>
   <% elsif status.unreachable? %>

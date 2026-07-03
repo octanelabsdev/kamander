@@ -1,0 +1,29 @@
+track_planner_production_restart_succeeded:
+  managed_app: track_planner
+  app_destination: track_planner_production
+  verb: restart
+  status: succeeded
+  command: "docker restart track-planner-web-production-63cea7c46926aa7437725417bd51fb40b95cb80a"
+  output: "Restarting container...\ntrack-planner-web-production-63cea7c46926aa7437725417bd51fb40b95cb80a\n"
+  version:
+  exit_status: 0
+  started_at: <%= 10.minutes.ago %>
+  finished_at: <%= 9.minutes.ago %>
+
+track_planner_staging_stop_failed:
+  managed_app: track_planner
+  app_destination: track_planner_staging
+  verb: stop
+  status: failed
+  command: "bin/kamal app stop -d staging"
+  output: "Stopping...\nERROR: no container found for role web on destination staging\n"
+  version:
+  exit_status: 1
+  started_at: <%= 30.minutes.ago %>
+  finished_at: <%= 29.minutes.ago %>
+
+# No queued/running fixtures on purpose: an active-status row would occupy
+# the partial unique index's one slot per destination, so any test that
+# creates a NEW active operation on the same destination would collide with
+# fixture data instead of exercising the lock cleanly. Both rows above are
+# terminal (succeeded/failed) and leave their destinations unlocked.

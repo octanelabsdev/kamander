@@ -1,0 +1,20 @@
+<% content_for :title, "#{@operation.verb.capitalize} · #{@operation.managed_app.display_label}" %>
+
+<%= turbo_stream_from @operation %>
+
+<section class="w-full max-w-3xl">
+  <%= link_to "← #{@operation.managed_app.display_label}", managed_app_path(@operation.managed_app),
+        class: "text-sm text-neutral-500 hover:text-neutral-300" %>
+
+  <header class="mt-4 mb-6">
+    <h1 class="text-xl font-semibold text-neutral-100">
+      <%= @operation.verb.capitalize %> &middot; <%= @operation.app_destination.name || "base" %>
+    </h1>
+    <p class="text-sm text-neutral-500"><%= @operation.managed_app.display_label %></p>
+  </header>
+
+  <%= render "status_badge", operation: @operation %>
+
+  <pre id="<%= dom_id(@operation, :output) %>"
+       class="mt-4 max-h-[32rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-neutral-800 bg-neutral-950 p-4 font-mono text-sm text-neutral-300"><%= render partial: "line", collection: @operation.output.each_line.map(&:chomp), as: :line %></pre>
+</section>
