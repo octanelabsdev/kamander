@@ -23,8 +23,25 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
+  <body class="min-h-screen bg-neutral-950 text-neutral-200 antialiased">
+    <header class="border-b border-neutral-800">
+      <nav class="container mx-auto flex items-center justify-between px-5 py-4">
+        <%= link_to "Kamander", root_path, class: "text-lg font-semibold text-neutral-100" %>
+        <div class="flex items-center gap-4 text-sm">
+          <%= link_to "Scan review", scan_path, class: "text-neutral-400 hover:text-neutral-100" %>
+          <%= link_to "Settings", edit_setting_path, class: "text-neutral-400 hover:text-neutral-100" %>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container mx-auto px-5 py-8">
+      <% if notice.present? %>
+        <p class="mb-4 rounded-md border border-emerald-900 bg-emerald-950/40 px-4 py-2 text-sm text-emerald-300"><%= notice %></p>
+      <% end %>
+      <% if alert.present? %>
+        <p class="mb-4 rounded-md border border-red-900 bg-red-950/40 px-4 py-2 text-sm text-red-300"><%= alert %></p>
+      <% end %>
+
       <%= yield %>
     </main>
   </body>

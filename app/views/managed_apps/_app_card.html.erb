@@ -1,0 +1,45 @@
+<%= turbo_frame_tag dom_id(managed_app) do %>
+  <div class="flex flex-col gap-3 rounded-lg border border-neutral-800 bg-neutral-900 p-4">
+    <header class="flex items-start justify-between gap-2">
+      <div>
+        <h2 class="text-lg font-medium text-neutral-100"><%= managed_app.display_label %></h2>
+        <p class="text-sm text-neutral-500"><%= managed_app.service_name %></p>
+      </div>
+      <span class="flex shrink-0 items-center gap-1.5 text-xs text-neutral-500" title="Status unknown">
+        <span class="h-2 w-2 rounded-full bg-neutral-600"></span>
+        status unknown
+      </span>
+    </header>
+
+    <div class="flex flex-col gap-1 text-sm text-neutral-400">
+      <% if managed_app.app_destinations.empty? %>
+        <p class="italic text-neutral-600">No destinations found on last scan.</p>
+      <% else %>
+        <% managed_app.app_destinations.each do |destination| %>
+          <p>
+            <span class="font-medium text-neutral-300"><%= destination.name || "base" %></span>
+            <%= destination.server_ips.join(", ").presence || "no servers" %>
+            <% if destination.proxy_host.present? %>
+              &middot; <%= destination.proxy_host %>
+            <% end %>
+            <% if destination.accessory_names.any? %>
+              &middot; <%= destination.accessory_names.join(", ") %>
+            <% end %>
+          </p>
+        <% end %>
+      <% end %>
+    </div>
+
+    <details class="text-sm">
+      <summary class="cursor-pointer text-neutral-400 hover:text-neutral-200">Rename</summary>
+      <%= render "managed_apps/rename_form", managed_app: managed_app %>
+    </details>
+
+    <footer class="flex items-center justify-between border-t border-neutral-800 pt-3">
+      <%= link_to "View", managed_app_path(managed_app), class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+      <%= button_to "Forget", managed_app_path(managed_app), method: :delete,
+            data: { turbo_confirm: "Forget #{managed_app.display_label}? This can't be undone." },
+            class: "text-sm text-red-500 hover:text-red-400" %>
+    </footer>
+  </div>
+<% end %>

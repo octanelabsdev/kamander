@@ -1,0 +1,30 @@
+<div class="flex items-start gap-3 rounded-md border border-neutral-800 p-3">
+  <%= check_box_tag "managed_app_ids[]", managed_app.id, false,
+        id: "candidate_#{managed_app.id}",
+        class: "mt-1 h-4 w-4 rounded border-neutral-700 bg-neutral-900" %>
+
+  <div class="flex-1">
+    <label for="candidate_<%= managed_app.id %>" class="flex items-center gap-2">
+      <span class="font-medium text-neutral-100"><%= managed_app.service_name %></span>
+      <% if managed_app.hidden? %>
+        <span class="rounded bg-neutral-800 px-1.5 py-0.5 text-xs text-neutral-400">Hidden</span>
+      <% end %>
+    </label>
+    <p class="text-sm text-neutral-500"><%= managed_app.repo_path %></p>
+
+    <% if managed_app.app_destinations.any? %>
+      <p class="mt-1 text-sm text-neutral-400">
+        <%= managed_app.app_destinations.map { |destination| destination.name || "base" }.join(", ") %>
+        &middot;
+        <%= managed_app.app_destinations.flat_map(&:server_ips).uniq.join(", ").presence || "no servers" %>
+      </p>
+    <% end %>
+
+    <div class="mt-2">
+      <%= label_tag "labels_#{managed_app.id}", "Label", class: "sr-only" %>
+      <%= text_field_tag "labels[#{managed_app.id}]", managed_app.display_name,
+            id: "labels_#{managed_app.id}", placeholder: "Optional label",
+            class: "w-full max-w-xs rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm text-neutral-100" %>
+    </div>
+  </div>
+</div>

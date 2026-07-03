@@ -51,6 +51,19 @@ class ManagedAppsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Contractor Link", app.reload.display_name
   end
 
+  test "operator renames an app inline and sees the card update without a page reload" do
+    app = managed_apps(:contractor_link)
+
+    patch managed_app_url(app), params: { managed_app: { display_name: "Contractor Link" } },
+      as: :turbo_stream
+
+    assert_response :success
+    assert_match "turbo-stream", response.media_type
+    assert_select "turbo-stream[action=replace][target=?]", "managed_app_#{app.id}" do
+      assert_select "h2", "Contractor Link"
+    end
+  end
+
   test "forget disappears" do
     app = managed_apps(:contractor_link)
 

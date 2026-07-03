@@ -1,0 +1,8 @@
+<%= form_with model: managed_app, class: "mt-2 flex items-center gap-2" do |form| %>
+  <%= form.label :display_name, "Label", for: dom_id(managed_app, :display_name), class: "sr-only" %>
+  <%= form.text_field :display_name, placeholder: managed_app.service_name,
+        id: dom_id(managed_app, :display_name),
+        class: "w-full rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm text-neutral-100" %>
+  <%= form.submit "Save",
+        class: "shrink-0 rounded-md border border-neutral-700 px-2 py-1 text-sm text-neutral-300 hover:bg-neutral-800" %>
+<% end %>

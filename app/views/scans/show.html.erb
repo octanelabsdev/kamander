@@ -1,0 +1,59 @@
+<% content_for :title, "Scan review" %>
+
+<section class="w-full">
+  <header class="mb-6 flex items-center justify-between">
+    <h1 class="text-xl font-semibold text-neutral-100">Scan review</h1>
+    <%= button_to "Rescan", scan_path,
+          class: "rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800" %>
+  </header>
+
+  <% if @errored_apps.any? %>
+    <section class="mb-8">
+      <h2 class="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">Parse errors</h2>
+      <ul class="flex flex-col gap-2">
+        <% @errored_apps.each do |scanned_app| %>
+          <li class="flex items-center gap-2 rounded-md border border-red-900/50 bg-red-950/30 px-3 py-2 text-sm">
+            <span class="rounded bg-red-900/60 px-1.5 py-0.5 text-xs font-medium text-red-200">Error</span>
+            <span class="font-medium text-neutral-200"><%= File.basename(scanned_app.repo_path) %></span>
+            <span class="text-neutral-400"><%= scanned_app.error %></span>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+
+  <%= form_with url: confirm_managed_apps_path, method: :post do %>
+    <% if @discovered_apps.any? %>
+      <section class="mb-6">
+        <h2 class="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">Discovered</h2>
+        <div class="flex flex-col gap-2">
+          <%= render partial: "scans/candidate", collection: @discovered_apps, as: :managed_app %>
+        </div>
+      </section>
+    <% end %>
+
+    <% if @hidden_apps.any? %>
+      <section class="mb-6">
+        <h2 class="mb-2 text-sm font-medium uppercase tracking-wide text-neutral-500">Hidden</h2>
+        <div class="flex flex-col gap-2 opacity-70">
+          <%= render partial: "scans/candidate", collection: @hidden_apps, as: :managed_app %>
+        </div>
+      </section>
+    <% end %>
+
+    <% if @discovered_apps.any? || @hidden_apps.any? %>
+      <div class="flex gap-3">
+        <button type="submit" name="commit" value="confirm"
+                class="rounded-md bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-white">
+          Add to dashboard
+        </button>
+        <button type="submit" name="commit" value="hide"
+                class="rounded-md border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">
+          Hide
+        </button>
+      </div>
+    <% else %>
+      <p class="text-sm text-neutral-500">No candidates to review. Try a rescan.</p>
+    <% end %>
+  <% end %>
+</section>
