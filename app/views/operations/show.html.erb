@@ -1,5 +1,13 @@
 <% content_for :title, "#{@operation.verb.capitalize} · #{@operation.managed_app.display_label}" %>
 
+<%# Scoped to this page, not the layout: only the self-healing poll below needs a
+    morph refresh (no flash, scroll preserved on a long-running output stream) —
+    normal Turbo Drive navigation elsewhere has no reason to change behavior. %>
+<% content_for :head do %>
+  <meta name="turbo-refresh-method" content="morph">
+  <meta name="turbo-refresh-scroll" content="preserve">
+<% end %>
+
 <%= turbo_stream_from @operation %>
 
 <section class="w-full max-w-3xl">
@@ -17,4 +25,11 @@
 
   <pre id="<%= dom_id(@operation, :output) %>"
        class="mt-4 max-h-[32rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-neutral-800 bg-neutral-950 p-4 font-mono text-sm text-neutral-300"><%= render partial: "line", collection: @operation.output.each_line.map(&:chomp), as: :line %></pre>
+
+  <%# Self-heals a console whose Turbo Stream subscription lost the race against
+      a fast operation finishing — see op_refresher_controller.js. Rendered only
+      while active, so it (and the polling it drives) disappears once terminal. %>
+  <% unless @operation.terminal? %>
+    <div data-controller="op-refresher" class="hidden"></div>
+  <% end %>
 </section>
