@@ -1,0 +1,21 @@
+track_planner_production_status:
+  app_destination: track_planner_production
+  state: running
+  checked_at: <%= 20.seconds.ago %>
+  containers:
+    - { name: "track-planner-web-production-63cea7c46926aa7437725417bd51fb40b95cb80a", service: "track-planner", role: "web", destination: "production", kind: "app", host: "5.78.71.207", state: "running", status_text: "Up 3 hours", image: "kamander/track-planner:63cea7c46926aa7437725417bd51fb40b95cb80a", version: "63cea7c46926aa7437725417bd51fb40b95cb80a" }
+    - { name: "track-planner-db", service: "track-planner-db", role: , destination: , kind: "accessory", host: "5.78.71.207", state: "running", status_text: "Up 6 days", image: "postgres:16", version: }
+    - { name: "kamal-proxy", service: "kamal-proxy", role: , destination: , kind: "proxy", host: "5.78.71.207", state: "running", status_text: "Up 6 days", image: "basecamp/kamal-proxy:latest", version: }
+  error:
+
+track_planner_staging_status:
+  app_destination: track_planner_staging
+  state: down
+  checked_at: <%= 40.seconds.ago %>
+  containers:
+    - { name: "track-planner-web-staging-6bc7e2d031731d55935ce19b19d3defe7d6b8d74", service: "track-planner", role: "web", destination: "staging", kind: "app", host: "5.78.71.208", state: "exited", status_text: "Exited (0) 12 minutes ago", image: "kamander/track-planner:6bc7e2d031731d55935ce19b19d3defe7d6b8d74", version: "6bc7e2d031731d55935ce19b19d3defe7d6b8d74" }
+    - { name: "kamal-proxy", service: "kamal-proxy", role: , destination: , kind: "proxy", host: "5.78.71.208", state: "running", status_text: "Up 6 days", image: "basecamp/kamal-proxy:latest", version: }
+  error:
+
+# contractor_link_base intentionally has no status row here — leaves an
+# "unknown" case (rows are lazily created by the writer; no row renders unknown).

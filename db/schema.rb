@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_03_043950) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_03_073049) do
   create_table "app_destinations", force: :cascade do |t|
     t.json "accessory_names", default: [], null: false
     t.string "config_file", null: false
@@ -19,11 +19,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_043950) do
     t.string "name"
     t.string "proxy_host"
     t.json "servers", default: {}, null: false
+    t.string "service_name", null: false
     t.string "ssh_user"
     t.datetime "updated_at", null: false
     t.index ["managed_app_id", "config_file"], name: "index_app_destinations_on_managed_app_id_and_config_file", unique: true
     t.index ["managed_app_id", "name"], name: "index_app_destinations_on_managed_app_id_and_name"
     t.index ["managed_app_id"], name: "index_app_destinations_on_managed_app_id"
+  end
+
+  create_table "destination_statuses", force: :cascade do |t|
+    t.integer "app_destination_id", null: false
+    t.datetime "checked_at"
+    t.json "containers", default: [], null: false
+    t.datetime "created_at", null: false
+    t.string "error"
+    t.integer "state", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["app_destination_id"], name: "index_destination_statuses_on_app_destination_id", unique: true
   end
 
   create_table "managed_apps", force: :cascade do |t|
@@ -49,4 +61,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_043950) do
   end
 
   add_foreign_key "app_destinations", "managed_apps"
+  add_foreign_key "destination_statuses", "app_destinations"
 end

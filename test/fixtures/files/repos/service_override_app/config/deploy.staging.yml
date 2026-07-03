@@ -1,0 +1,5 @@
+service: service_override_app_staging
+
+servers:
+  web:
+    - 10.0.8.6
