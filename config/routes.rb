@@ -11,6 +11,7 @@ Rails.application.routes.draw do
 
   resource :scan, only: %i[create show]
   resource :setting, only: %i[edit update]
+  resource :status_refresh, only: :create
 
   resources :managed_apps, only: %i[index show update destroy] do
     post :confirm, on: :collection
