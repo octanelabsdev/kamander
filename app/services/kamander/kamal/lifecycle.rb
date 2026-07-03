@@ -88,20 +88,31 @@ module Kamander
 
       def begin_running!(command)
         @operation.update!(command: command, status: :running, started_at: Time.current)
+        broadcast_badge!
       end
 
       def append_line!(line)
         @operation.update!(output: "#{@operation.output}#{line}\n")
         @operation.broadcast_append_to @operation,
           target: ActionView::RecordIdentifier.dom_id(@operation, :output),
-          html: "<div>#{ERB::Util.html_escape(line)}</div>"
+          partial: "operations/line", locals: { line: line }
       end
 
       # Shared terminal-state bookkeeping for both a normal finish and a pre-flight block —
       # either way the destination's lock frees and a status re-poll is worth chaining.
       def complete!(success:, exit_status: nil)
         @operation.update!(status: success ? :succeeded : :failed, exit_status: exit_status, finished_at: Time.current)
+        broadcast_badge!
         StatusPollJob.perform_later(managed_app_id: @operation.managed_app_id)
+      end
+
+      # Broadcast twice per run: once from begin_running! (so the exact command
+      # reaches anyone watching before the op finishes — the common case, given
+      # normal queue pickup latency) and once from complete! (final state).
+      def broadcast_badge!
+        @operation.broadcast_replace_to @operation,
+          target: ActionView::RecordIdentifier.dom_id(@operation, :status_badge),
+          partial: "operations/status_badge", locals: { operation: @operation }
       end
 
       def block!(command:, message:)

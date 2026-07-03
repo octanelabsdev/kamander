@@ -53,6 +53,22 @@ class Kamander::Kamal::LifecycleTest < ActiveSupport::TestCase
     assert_equal destination.managed_app.repo_path, call.chdir
   end
 
+  test "the status badge broadcasts the real command as soon as it's known, not just at completion" do
+    destination = destination_with_status(containers: [
+      container(name: "lifecycle_app-web-production-abc123", kind: "app", state: "running", host: "10.0.0.1", version: "abc123")
+    ])
+    operation = queued_operation(destination, verb: :reboot)
+    argv = [ "bin/kamal", "app", "boot", "-d", "production", "--version", "abc123" ]
+    runner = FakeCommandRunner.new(responses: { argv => { lines: [ "Booting..." ], exit_status: 0 } })
+    target = ActionView::RecordIdentifier.dom_id(operation, :status_badge)
+
+    streams = capture_turbo_stream_broadcasts(operation) { call_lifecycle(operation, command_runner: runner) }
+    badge_broadcasts = streams.select { |stream| stream["target"] == target }
+
+    assert_equal 2, badge_broadcasts.size, "expected one badge broadcast from begin_running! and one from complete!"
+    assert_match argv.join(" "), badge_broadcasts.first.to_s
+  end
+
   test "start is blocked without a known deployed version" do
     destination = destination_with_status(containers: [])
     operation = queued_operation(destination, verb: :start)

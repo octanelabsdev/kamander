@@ -1,0 +1,17 @@
+<%# locals: operation %>
+<div id="<%= dom_id(operation, :status_badge) %>"
+     class="flex items-center justify-between gap-3 rounded-lg border border-neutral-800 bg-neutral-900 p-4">
+  <div>
+    <p class="font-mono text-sm text-neutral-300"><%= operation.queued? ? "queued…" : operation.command %></p>
+    <% if operation.finished_at %>
+      <p class="mt-1 text-xs text-neutral-500">
+        <% if operation.exit_status %>exit <%= operation.exit_status %> &middot; <% end %><%= operation.duration&.round %>s
+      </p>
+    <% end %>
+  </div>
+
+  <span class="flex shrink-0 items-center gap-1.5 text-xs text-neutral-400">
+    <span class="h-2 w-2 shrink-0 rounded-full <%= operation_status_color(operation.status) %> <%= "animate-pulse" if operation.running? %>"></span>
+    <%= operation_status_label(operation.status) %>
+  </span>
+</div>
