@@ -1,0 +1,41 @@
+<%# locals: managed_app, container_metrics (array of Kamander::Kamal::ContainerMetrics) %>
+<%= turbo_frame_tag :resource_usage, class: "block aria-busy:opacity-50 transition-opacity" do %>
+  <% expected_containers = expected_running_containers(managed_app) %>
+
+  <% if expected_containers.empty? %>
+    <p class="text-sm italic text-neutral-600">No running containers to measure.</p>
+  <% else %>
+    <% metrics_by_key = container_metrics.index_by { |metrics| [ metrics.name, metrics.host ] } %>
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="text-xs uppercase tracking-wide text-neutral-500">
+          <th class="py-1 pr-3 font-medium">Container</th>
+          <th class="py-1 pr-3 font-medium">Host</th>
+          <th class="py-1 pr-3 font-medium">CPU</th>
+          <th class="py-1 pr-3 font-medium">Memory</th>
+          <th class="py-1 pr-3 font-medium">Net I/O</th>
+          <th class="py-1 pr-3 font-medium">Block I/O</th>
+          <th class="py-1 font-medium">PIDs</th>
+        </tr>
+      </thead>
+      <tbody class="text-neutral-300">
+        <% expected_containers.each do |container| %>
+          <% metrics = metrics_by_key[[ container[:name], container[:host] ]] %>
+          <tr class="border-t border-neutral-800">
+            <td class="py-1.5 pr-3 font-mono text-xs text-neutral-400"><%= container[:name] %></td>
+            <td class="py-1.5 pr-3 text-neutral-400"><%= container[:host] %></td>
+            <% if metrics %>
+              <td class="py-1.5 pr-3"><%= metrics.cpu_percent %></td>
+              <td class="py-1.5 pr-3"><%= metrics.mem_usage %> / <%= metrics.mem_limit %> (<%= metrics.mem_percent %>)</td>
+              <td class="py-1.5 pr-3"><%= metrics.net_io %></td>
+              <td class="py-1.5 pr-3"><%= metrics.block_io %></td>
+              <td class="py-1.5"><%= metrics.pids %></td>
+            <% else %>
+              <td class="py-1.5 italic text-neutral-600" colspan="5">no data (host unreachable?)</td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+<% end %>

@@ -95,6 +95,15 @@ module ManagedAppsHelper
       { "state" => "absent", "status_text" => nil, "version" => nil }
   end
 
+  # Delegates to MetricsReader's own definition of "what counts" — that's the
+  # single source of truth for which (name, host) slots are measurable, since
+  # it's also what #call uses to decide what to query. Sorted here purely for
+  # a stable table order; that's a display concern, not MetricsReader's.
+  def expected_running_containers(managed_app)
+    Kamander::Kamal::MetricsReader.expected_containers(managed_app)
+      .sort_by { |container| [ container[:name], container[:host].to_s ] }
+  end
+
   private
 
     def seconds_in_words(elapsed)

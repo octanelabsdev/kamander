@@ -31,6 +31,16 @@
     <% end %>
   </section>
 
+  <section class="mt-6">
+    <h2 class="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">Resource usage</h2>
+    <p class="mb-2 text-xs text-neutral-600">CPU and memory for containers currently running and reachable over SSH.</p>
+    <%= turbo_frame_tag :resource_usage, class: "block aria-busy:opacity-50 transition-opacity" do %>
+      <%= link_to "Load resource usage", resource_usage_managed_app_path(@managed_app),
+            data: { turbo_frame: :resource_usage },
+            class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+    <% end %>
+  </section>
+
   <% if @managed_app.operations.recent.any? %>
     <section class="mt-6">
       <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Recent operations</h2>
