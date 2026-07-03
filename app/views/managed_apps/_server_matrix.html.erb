@@ -1,0 +1,18 @@
+<%# locals: app_destination, status %>
+<div>
+  <h3 class="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">Servers</h3>
+  <div class="flex flex-col gap-2">
+    <% app_destination.servers.each do |role, ips| %>
+      <% ips.each do |ip| %>
+        <div class="flex items-start gap-3 text-sm">
+          <span class="w-36 shrink-0 font-mono text-neutral-500"><%= ip %></span>
+          <div class="flex flex-1 flex-col gap-1">
+            <% containers_by(status, kind: "app", role: role, host: ip).each do |container| %>
+              <%= render "managed_apps/container_row", container: container, label: role %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

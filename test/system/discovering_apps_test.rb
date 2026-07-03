@@ -34,7 +34,10 @@ class DiscoveringAppsTest < ApplicationSystemTestCase
     assert_text "2 apps added to the dashboard."
     assert_text "Simple App (staging box)"
     assert_text "multi_dest_app"
-    assert_text "status unknown", count: 2
+    # "not yet checked" shows twice per app: once per fresh destination pill
+    # (simple_app's base + multi_dest_app's production/staging = 3) and once
+    # per app's own staleness line (2 apps, neither ever polled = 2).
+    assert_text "not yet checked", count: 5
   end
 
   test "operator views an app's details from the dashboard" do

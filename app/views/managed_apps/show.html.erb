@@ -1,16 +1,28 @@
 <% content_for :title, @managed_app.display_label %>
 
+<%= turbo_stream_from [ @managed_app, :statuses ] %>
+
 <section class="w-full max-w-3xl">
   <%= link_to "← Dashboard", root_path, class: "text-sm text-neutral-500 hover:text-neutral-300" %>
 
   <header class="mt-4 mb-6 flex items-start justify-between">
     <div>
-      <h1 class="text-xl font-semibold text-neutral-100"><%= @managed_app.display_label %></h1>
+      <div class="flex items-center gap-2">
+        <span class="h-3 w-3 shrink-0 rounded-full <%= status_dot_color(@managed_app.status_rollup) %>"
+              title="<%= status_label(@managed_app.status_rollup) %>"></span>
+        <h1 class="text-xl font-semibold text-neutral-100"><%= @managed_app.display_label %></h1>
+      </div>
       <p class="text-sm text-neutral-500"><%= @managed_app.service_name %> &middot; <%= @managed_app.repo_path %></p>
+      <p class="mt-1 text-xs text-neutral-500"><%= staleness_in_words(managed_app_checked_at(@managed_app)) %></p>
     </div>
-    <%= button_to "Forget", managed_app_path(@managed_app), method: :delete,
-          data: { turbo_confirm: "Forget #{@managed_app.display_label}? This can't be undone." },
-          class: "rounded-md border border-red-900 px-3 py-1.5 text-sm text-red-400 hover:bg-red-950/40" %>
+
+    <div class="flex items-center gap-2">
+      <%= button_to "Refresh", status_refresh_path(managed_app_id: @managed_app.id),
+            class: "rounded-md border border-neutral-700 px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800" %>
+      <%= button_to "Forget", managed_app_path(@managed_app), method: :delete,
+            data: { turbo_confirm: "Forget #{@managed_app.display_label}? This can't be undone." },
+            class: "rounded-md border border-red-900 px-3 py-1.5 text-sm text-red-400 hover:bg-red-950/40" %>
+    </div>
   </header>
 
   <section class="flex flex-col gap-4">
