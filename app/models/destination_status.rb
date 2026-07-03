@@ -5,8 +5,12 @@ class DestinationStatus < ApplicationRecord
 
   belongs_to :app_destination
 
-  after_create_commit :broadcast_status
-  after_update_commit :broadcast_status
+  # A single after_commit covering both actions — after_create_commit and
+  # after_update_commit pointed at the same method name silently collide in
+  # ActiveSupport::Callbacks (the later registration wins), so newly created
+  # rows never broadcast. Confirmed by direct reproduction; only the merged
+  # form fires on both create and update.
+  after_commit :broadcast_status, on: %i[create update]
 
   def stale?
     checked_at.nil? || checked_at < STALE_AFTER.ago
