@@ -1,0 +1,5 @@
+service: partial_failure_app
+image: kamander/partial_failure_app
+
+ssh:
+  user: deploy
