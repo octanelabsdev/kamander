@@ -32,8 +32,10 @@ module Kamander
       def serialize(container)
         {
           "name" => container.name,
+          "service" => container.service,
+          "role" => container.role,
+          "destination" => container.destination,
           "kind" => container.kind.to_s,
-          "label" => container.label,
           "host" => container.host,
           "state" => container.state.to_s,
           "status_text" => container.status_text,
