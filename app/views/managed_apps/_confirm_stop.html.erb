@@ -1,0 +1,28 @@
+<%# locals: destination — typed-confirm modal for stopping a production destination (design §5.2 exception). %>
+<% service_name = destination.managed_app.display_label %>
+<div data-controller="confirm-stop" data-confirm-stop-service-name-value="<%= service_name %>" class="relative">
+  <button type="button" data-action="confirm-stop#open"
+          title="<%= lifecycle_verb_tooltip("stop") %>"
+          class="<%= lifecycle_button_class("stop") %>">
+    Stop
+  </button>
+
+  <div data-confirm-stop-target="dialog" class="hidden absolute z-10 mt-2 w-72 rounded-md border border-red-900 bg-neutral-950 p-3 shadow-lg">
+    <div class="flex flex-col gap-2">
+      <p class="text-xs text-red-300">
+        Stopping <strong><%= destination.name || "base" %></strong> on <%= destination.server_ips.join(", ") %> causes downtime.
+        Type <strong><%= service_name %></strong> to confirm.
+      </p>
+      <input type="text" data-confirm-stop-target="input"
+             data-action="input->confirm-stop#check keydown.esc->confirm-stop#close"
+             placeholder="<%= service_name %>" autocomplete="off"
+             class="rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm text-neutral-100">
+      <div class="flex items-center gap-2">
+        <%= button_to "Confirm stop", operations_path(verb: "stop", app_destination_id: destination.id),
+              data: { confirm_stop_target: "submit" }, disabled: true,
+              class: "rounded-md bg-red-700 px-2 py-1 text-xs font-medium text-red-50 disabled:cursor-not-allowed disabled:opacity-40" %>
+        <button type="button" data-action="confirm-stop#close" class="text-xs text-neutral-400 hover:text-neutral-200">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
