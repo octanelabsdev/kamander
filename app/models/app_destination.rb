@@ -14,6 +14,13 @@ class AppDestination < ApplicationRecord
     name.nil?
   end
 
+  # A base-only app's sole destination IS its production deployment (beanlink
+  # et al) — treat it as production-grade too, alongside anything named
+  # "prod"/"production".
+  def production?
+    name.nil? || name.match?(/prod/i)
+  end
+
   def effective_ssh_user
     ssh_user.presence || Setting.current.default_ssh_user
   end

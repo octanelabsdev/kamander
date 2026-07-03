@@ -2,9 +2,7 @@
 <% status = destination.destination_status %>
 <% state = status&.state %>
 <% active_operation = destination.active_operation %>
-<%# A base-only app's sole destination IS its production deployment (beanlink et al) — treat it
-    as production-grade too, alongside anything named "prod"/"production". %>
-<% production = destination.name.nil? || destination.name.match?(/prod/i) %>
+<% production = destination.production? %>
 
 <div class="flex flex-wrap items-center gap-2">
   <% if active_operation %>
