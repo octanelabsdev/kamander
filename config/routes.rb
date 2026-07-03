@@ -16,4 +16,6 @@ Rails.application.routes.draw do
   resources :managed_apps, only: %i[index show update destroy] do
     post :confirm, on: :collection
   end
+
+  resources :operations, only: %i[show create]
 end
