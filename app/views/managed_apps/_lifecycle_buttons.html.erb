@@ -1,0 +1,26 @@
+<%# locals: destination %>
+<% status = destination.destination_status %>
+<% state = status&.state %>
+<% active_operation = destination.active_operation %>
+<% production = destination.production? %>
+
+<div class="flex flex-wrap items-center gap-2">
+  <% if active_operation %>
+    <%= link_to "Operation in progress…", operation_path(active_operation),
+          class: "text-xs font-medium text-amber-400 hover:text-amber-300" %>
+  <% elsif state.nil? || %w[unknown unreachable].include?(state) %>
+    <span class="text-xs text-neutral-600">Refresh status first</span>
+  <% else %>
+    <% (state == "down" ? %w[start] : %w[restart reboot stop]).each do |verb| %>
+      <% if verb == "stop" && production %>
+        <%= render "managed_apps/confirm_stop", destination: destination %>
+      <% else %>
+        <% confirm = verb == "stop" || production ? lifecycle_confirm_text(verb, destination) : nil %>
+        <%= button_to lifecycle_verb_label(verb), operations_path(verb: verb, app_destination_id: destination.id),
+              title: lifecycle_verb_tooltip(verb),
+              data: (confirm ? { turbo_confirm: confirm } : {}),
+              class: lifecycle_button_class(verb) %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

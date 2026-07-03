@@ -2,10 +2,17 @@ default: &default
   dispatchers:
     - polling_interval: 1
       batch_size: 500
+  # Two lanes, not one "*" pool — a kamal boot streaming for minutes on the
+  # lifecycle lane must never starve the 30s fleet poll of a thread on the
+  # default lane.
   workers:
-    - queues: "*"
+    - queues: [ default ]
       threads: 3
       processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
+      polling_interval: 0.1
+    - queues: [ lifecycle ]
+      threads: 2
+      processes: 1
       polling_interval: 0.1
 
 development:

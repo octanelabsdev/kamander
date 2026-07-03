@@ -1,6 +1,8 @@
 class AppDestination < ApplicationRecord
   belongs_to :managed_app
   has_one :destination_status, dependent: :destroy
+  has_many :operations, dependent: :destroy
+  has_one :active_operation, -> { active }, class_name: "Operation"
 
   validates :config_file, presence: true, uniqueness: { scope: :managed_app_id }
 
@@ -10,6 +12,13 @@ class AppDestination < ApplicationRecord
 
   def base?
     name.nil?
+  end
+
+  # A base-only app's sole destination IS its production deployment (beanlink
+  # et al) — treat it as production-grade too, alongside anything named
+  # "prod"/"production".
+  def production?
+    name.nil? || name.match?(/prod/i)
   end
 
   def effective_ssh_user
