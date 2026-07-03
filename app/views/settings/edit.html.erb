@@ -1,0 +1,22 @@
+<% content_for :title, "Settings" %>
+
+<section class="w-full max-w-md">
+  <h1 class="mb-6 text-xl font-semibold text-neutral-100">Settings</h1>
+
+  <%= form_with model: @setting, url: setting_path, method: :patch, class: "flex flex-col gap-4" do |form| %>
+    <div>
+      <%= form.label :scan_root, class: "mb-1 block text-sm text-neutral-400" %>
+      <%= form.text_field :scan_root,
+            class: "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100" %>
+    </div>
+
+    <div>
+      <%= form.label :default_ssh_user, class: "mb-1 block text-sm text-neutral-400" %>
+      <%= form.text_field :default_ssh_user,
+            class: "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100" %>
+    </div>
+
+    <%= form.submit "Save",
+          class: "self-start rounded-md bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-white" %>
+  <% end %>
+</section>

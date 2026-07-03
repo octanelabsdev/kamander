@@ -1,0 +1,21 @@
+<% content_for :title, @managed_app.display_label %>
+
+<section class="w-full max-w-3xl">
+  <%= link_to "← Dashboard", root_path, class: "text-sm text-neutral-500 hover:text-neutral-300" %>
+
+  <header class="mt-4 mb-6 flex items-start justify-between">
+    <div>
+      <h1 class="text-xl font-semibold text-neutral-100"><%= @managed_app.display_label %></h1>
+      <p class="text-sm text-neutral-500"><%= @managed_app.service_name %> &middot; <%= @managed_app.repo_path %></p>
+    </div>
+    <%= button_to "Forget", managed_app_path(@managed_app), method: :delete,
+          data: { turbo_confirm: "Forget #{@managed_app.display_label}? This can't be undone." },
+          class: "rounded-md border border-red-900 px-3 py-1.5 text-sm text-red-400 hover:bg-red-950/40" %>
+  </header>
+
+  <section class="flex flex-col gap-4">
+    <% @managed_app.app_destinations.each do |destination| %>
+      <%= render "managed_apps/destination", destination: destination %>
+    <% end %>
+  </section>
+</section>
