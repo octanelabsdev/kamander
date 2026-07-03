@@ -1,0 +1,11 @@
+service: simple_app
+image: kamander/simple_app
+
+servers:
+  - 192.168.1.10
+
+registry:
+  server: registry.example.com
+  username: deploy
+  password:
+    - KAMAL_REGISTRY_PASSWORD

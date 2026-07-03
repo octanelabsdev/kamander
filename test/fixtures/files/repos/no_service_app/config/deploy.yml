@@ -1,0 +1,6 @@
+servers:
+  web:
+    - 10.0.5.5
+
+registry:
+  username: deploy

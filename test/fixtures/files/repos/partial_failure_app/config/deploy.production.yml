@@ -1,0 +1,6 @@
+servers:
+  web:
+    - 10.0.7.10
+
+proxy:
+  host: partialfailure.example.com

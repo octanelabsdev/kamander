@@ -1,0 +1,21 @@
+servers:
+  web:
+    hosts:
+      - 10.0.1.10
+      - 10.0.1.11
+  worker:
+    - 10.0.1.20
+
+proxy:
+  host: multidest.example.com
+
+accessories:
+  db:
+    image: postgres:16
+    host: 10.0.1.30
+  caddy:
+    image: caddy:2
+    host: 10.0.1.10
+  domain-validator:
+    image: kamander/domain-validator
+    host: 10.0.1.10
