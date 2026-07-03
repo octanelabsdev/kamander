@@ -1,0 +1,6 @@
+service: service_override_app
+image: kamander/service_override_app
+
+servers:
+  web:
+    - 10.0.8.5

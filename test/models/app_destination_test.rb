@@ -49,4 +49,16 @@ class AppDestinationTest < ActiveSupport::TestCase
     assert_nil destination.ssh_user
     assert_equal Setting.current.default_ssh_user, destination.effective_ssh_user
   end
+
+  test "a destination's effective service prefers its own captured service name" do
+    destination = app_destinations(:contractor_link_base)
+    destination.service_name = "contractor_link_staging"
+    assert_equal "contractor_link_staging", destination.effective_service
+  end
+
+  test "falls back to the app's service name when the destination's is blank" do
+    destination = app_destinations(:contractor_link_base)
+    destination.service_name = ""
+    assert_equal managed_apps(:contractor_link).service_name, destination.effective_service
+  end
 end

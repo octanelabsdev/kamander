@@ -15,4 +15,8 @@ class AppDestination < ApplicationRecord
   def effective_ssh_user
     ssh_user.presence || Setting.current.default_ssh_user
   end
+
+  def effective_service
+    service_name.presence || managed_app.service_name
+  end
 end

@@ -27,6 +27,21 @@ class Kamander::Kamal::ScanImporterTest < ActiveSupport::TestCase
     assert_equal [ "db" ], repo_two.app_destinations.sole.accessory_names
   end
 
+  test "a destination that overrides service captures its own service name" do
+    scanned = scanned_app(repo_path: "/tmp/repo_one", service_name: "repo-one", destinations: [
+      scanned_destination(config_file: "deploy.yml", service_name: "repo-one"),
+      scanned_destination(name: "staging", config_file: "deploy.staging.yml", service_name: "repo-one_staging")
+    ])
+
+    Kamander::Kamal::ScanImporter.new([ scanned ]).call
+
+    managed_app = ManagedApp.find_by(repo_path: "/tmp/repo_one")
+    base = managed_app.app_destinations.find_by(config_file: "deploy.yml")
+    staging = managed_app.app_destinations.find_by(config_file: "deploy.staging.yml")
+    assert_equal "repo-one", base.service_name
+    assert_equal "repo-one_staging", staging.service_name
+  end
+
   test "re-importing the same repo updates cached fields without duplicating the app or its destinations" do
     original = scanned_app(repo_path: "/tmp/repo_one", service_name: "repo-one", destinations: [
       scanned_destination(config_file: "deploy.yml", servers: { "web" => [ "1.2.3.4" ] }, proxy_host: "old.example.com")
@@ -125,9 +140,9 @@ class Kamander::Kamal::ScanImporterTest < ActiveSupport::TestCase
         destinations: destinations, error: error)
     end
 
-    def scanned_destination(name: nil, config_file: "deploy.yml", servers: {}, accessory_names: [],
+    def scanned_destination(name: nil, service_name: "app", config_file: "deploy.yml", servers: {}, accessory_names: [],
       ssh_user: nil, proxy_host: nil, error: nil)
-      Kamander::Kamal::ScannedDestination.new(name: name, config_file: config_file, servers: servers,
-        accessory_names: accessory_names, ssh_user: ssh_user, proxy_host: proxy_host, error: error)
+      Kamander::Kamal::ScannedDestination.new(name: name, service_name: service_name, config_file: config_file,
+        servers: servers, accessory_names: accessory_names, ssh_user: ssh_user, proxy_host: proxy_host, error: error)
     end
 end

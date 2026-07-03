@@ -50,6 +50,7 @@ module Kamander
           destination = managed_app.app_destinations.find_or_initialize_by(config_file: scanned_destination.config_file)
           destination.update!(
             name: scanned_destination.name,
+            service_name: scanned_destination.service_name,
             servers: scanned_destination.servers,
             accessory_names: scanned_destination.accessory_names,
             ssh_user: scanned_destination.ssh_user,

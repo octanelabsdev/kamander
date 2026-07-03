@@ -6,7 +6,7 @@ class ScansControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "trigger scan → review page lists candidates" do
-    assert_difference "ManagedApp.count", 6 do
+    assert_difference "ManagedApp.count", 7 do
       post scan_url
     end
     assert_redirected_to scan_path
