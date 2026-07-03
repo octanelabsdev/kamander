@@ -1,0 +1,4 @@
+<%# Placeholder — P2-F replaces this with the real per-destination status panel. %>
+<div id="<%= dom_id(app_destination, :status) %>">
+  <%= app_destination.name || "base" %>: <%= app_destination.destination_status&.state || "unknown" %>
+</div>
