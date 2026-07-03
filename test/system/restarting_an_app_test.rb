@@ -53,6 +53,54 @@ class RestartingAnAppTest < ApplicationSystemTestCase
     assert_button "Restart"
   end
 
+  test "an operator who arrives after a fast operation finished still sees the result" do
+    destination = build_destination
+
+    Kamander::Kamal.ssh_client = FakeSshClient.new(responses: {
+      "10.60.0.1" => docker_ps([ raw_container(name: "restart_app-web-staging-abc123", state: "running", status: "Up 1 hour",
+                                                service: "restart_app", role: "web", destination: "staging") ])
+    })
+    Kamander::Kamal.command_runner = FakeCommandRunner.new
+
+    # Built directly (not via click_on, which would navigate to the console
+    # immediately) and run to completion before any browser ever visits — the
+    # fast-op race this whole fix targets: the job finishes before the
+    # console's Turbo Stream subscription would have had a chance to exist.
+    operation = Operation.create!(managed_app: destination.managed_app, app_destination: destination,
+      verb: :restart, status: :queued, command: "pending")
+    LifecycleJob.perform_now(operation)
+    StatusPollJob.perform_now(managed_app_id: destination.managed_app_id)
+
+    visit operation_path(operation)
+
+    assert_text "docker restart restart_app-web-staging-abc123"
+    assert_text "Succeeded"
+    assert_no_selector "[data-controller='op-refresher']", visible: :all
+  end
+
+  test "a stuck console heals itself once it polls again" do
+    destination = build_destination
+
+    operation = Operation.create!(managed_app: destination.managed_app, app_destination: destination,
+      verb: :restart, status: :queued, command: "pending")
+
+    visit operation_path(operation)
+    assert_text "queued…"
+    assert_selector "[data-controller='op-refresher']", visible: :all
+
+    # The bug's exact post-condition: the operation finishes server-side but
+    # no broadcast reaches this console — Operation has no broadcast callback
+    # of its own (Lifecycle calls it explicitly mid-run), so a plain update!
+    # here is a faithful stand-in for "the job finished, nobody heard it."
+    # Nothing but the refresher's own poll can surface this.
+    operation.update!(status: :succeeded, command: "docker restart restart_app-web-staging-abc123",
+      output: "restarted\n", exit_status: 0, started_at: 1.minute.ago, finished_at: Time.current)
+
+    assert_text "Succeeded", wait: 6
+    assert_text "docker restart restart_app-web-staging-abc123"
+    assert_no_selector "[data-controller='op-refresher']", visible: :all
+  end
+
   private
 
     def build_destination

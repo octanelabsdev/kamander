@@ -83,6 +83,24 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Restarting container", response.body
   end
 
+  test "show includes the self-healing refresher while the operation is still active" do
+    destination = app_destinations(:contractor_link_base)
+    operation = Operation.create!(managed_app: destination.managed_app, app_destination: destination,
+      verb: :restart, status: :queued, command: "pending")
+
+    get operation_url(operation)
+
+    assert_select "[data-controller='op-refresher']"
+  end
+
+  test "show has no refresher once the operation is terminal" do
+    operation = operations(:track_planner_production_restart_succeeded)
+
+    get operation_url(operation)
+
+    assert_select "[data-controller='op-refresher']", count: 0
+  end
+
   private
 
     # No mocking gem in this project — plain-Ruby method swap, restored via
