@@ -16,6 +16,10 @@ class Operation < ApplicationRecord
     finished_at - started_at
   end
 
+  def terminal?
+    succeeded? || failed?
+  end
+
   private
 
     def app_destination_belongs_to_managed_app
