@@ -1,0 +1,26 @@
+track_planner_base:
+  managed_app: track_planner
+  name:
+  config_file: deploy.yml
+  servers: { web: ["5.78.71.207"] }
+  accessory_names: []
+  ssh_user: deploy
+  proxy_host: track-planner.example.com
+
+track_planner_production:
+  managed_app: track_planner
+  name: production
+  config_file: deploy.production.yml
+  servers: { web: ["5.78.71.207"] }
+  accessory_names: ["db", "caddy", "domain-validator"]
+  ssh_user: deploy
+  proxy_host: track-planner.example.com
+
+contractor_link_base:
+  managed_app: contractor_link
+  name:
+  config_file: deploy.yml
+  servers: { web: ["3.14.15.92"] }
+  accessory_names: []
+  ssh_user:
+  proxy_host:
