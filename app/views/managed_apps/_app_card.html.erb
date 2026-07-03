@@ -36,9 +36,10 @@
     </details>
 
     <footer class="flex items-center justify-between border-t border-neutral-800 pt-3">
-      <%= link_to "View", managed_app_path(managed_app), class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+      <%= link_to "View", managed_app_path(managed_app),
+            data: { turbo_frame: "_top" }, class: "text-sm text-neutral-400 hover:text-neutral-200" %>
       <%= button_to "Forget", managed_app_path(managed_app), method: :delete,
-            data: { turbo_confirm: "Forget #{managed_app.display_label}? This can't be undone." },
+            data: { turbo_frame: "_top", turbo_confirm: "Forget #{managed_app.display_label}? This can't be undone." },
             class: "text-sm text-red-500 hover:text-red-400" %>
     </footer>
   </div>
