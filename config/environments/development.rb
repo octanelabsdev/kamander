@@ -55,6 +55,13 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
 
+  # Use the durable queue database (not the in-process async adapter) so
+  # recurring.yml's status_poll actually runs — a poller writing job rows
+  # every 30s belongs in its own SQLite file, not competing with the app
+  # for the primary database's single writer.
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
+
   # Highlight code that triggered redirect in logs.
   config.action_dispatch.verbose_redirect_logs = true
 
