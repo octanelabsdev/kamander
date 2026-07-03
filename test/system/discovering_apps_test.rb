@@ -37,6 +37,20 @@ class DiscoveringAppsTest < ApplicationSystemTestCase
     assert_text "status unknown", count: 2
   end
 
+  test "operator views an app's details from the dashboard" do
+    app = managed_apps(:track_planner)
+
+    visit root_path
+    assert_text app.service_name
+
+    click_on "View"
+
+    assert_current_path managed_app_path(app)
+    assert_text app.repo_path
+    assert_text "production"
+    assert_text "staging"
+  end
+
   test "operator renames an app inline from the dashboard" do
     app = managed_apps(:track_planner)
 
