@@ -1,0 +1,6 @@
+service: empty_overlay_app
+image: kamander/empty_overlay_app
+
+servers:
+  web:
+    - 10.0.6.5

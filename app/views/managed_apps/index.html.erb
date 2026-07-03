@@ -1,0 +1,16 @@
+<% content_for :title, "Dashboard" %>
+
+<section class="w-full">
+  <header class="mb-6 flex items-center justify-between">
+    <h1 class="text-xl font-semibold text-neutral-100">Dashboard</h1>
+    <%= link_to "Scan review", scan_path, class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+  </header>
+
+  <% if @managed_apps.any? %>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <%= render partial: "managed_apps/app_card", collection: @managed_apps, as: :managed_app %>
+    </div>
+  <% else %>
+    <%= render "empty_state" %>
+  <% end %>
+</section>
