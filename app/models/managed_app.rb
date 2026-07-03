@@ -5,6 +5,7 @@ class ManagedApp < ApplicationRecord
 
   has_many :app_destinations, dependent: :destroy
   has_many :destination_statuses, through: :app_destinations
+  has_many :operations, dependent: :destroy
 
   validates :repo_path, presence: true, uniqueness: true
   validates :service_name, presence: true

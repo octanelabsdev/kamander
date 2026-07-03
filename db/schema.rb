@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_03_073049) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_03_091504) do
   create_table "app_destinations", force: :cascade do |t|
     t.json "accessory_names", default: [], null: false
     t.string "config_file", null: false
@@ -53,6 +53,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_073049) do
     t.index ["status", "position"], name: "index_managed_apps_on_status_and_position"
   end
 
+  create_table "operations", force: :cascade do |t|
+    t.integer "app_destination_id", null: false
+    t.string "command", null: false
+    t.datetime "created_at", null: false
+    t.integer "exit_status"
+    t.datetime "finished_at"
+    t.integer "managed_app_id", null: false
+    t.text "output", default: "", null: false
+    t.datetime "started_at"
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "verb", null: false
+    t.string "version"
+    t.index ["app_destination_id", "status"], name: "index_operations_on_app_destination_id_and_status"
+    t.index ["app_destination_id"], name: "index_operations_on_app_destination_id"
+    t.index ["app_destination_id"], name: "index_operations_one_active_per_destination", unique: true, where: "status IN (0, 1)"
+    t.index ["managed_app_id", "created_at"], name: "index_operations_on_managed_app_id_and_created_at"
+    t.index ["managed_app_id"], name: "index_operations_on_managed_app_id"
+  end
+
   create_table "settings", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "default_ssh_user", default: "deploy", null: false
@@ -62,4 +82,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_073049) do
 
   add_foreign_key "app_destinations", "managed_apps"
   add_foreign_key "destination_statuses", "app_destinations"
+  add_foreign_key "operations", "app_destinations"
+  add_foreign_key "operations", "managed_apps"
 end
