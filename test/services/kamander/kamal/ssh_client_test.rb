@@ -17,14 +17,14 @@ class Kamander::Kamal::SshClientTest < ActiveSupport::TestCase
   end
 
   test "builds the expected ssh argv" do
-    argv = Kamander::Kamal::SshClient.new.send(:build_argv, user: "deploy", host: "5.78.71.207", command: "docker ps --all")
+    argv = Kamander::Kamal::SshClient.new.send(:build_argv, user: "deploy", host: "203.0.113.10", command: "docker ps --all")
 
     assert_equal [
       "ssh",
       "-o", "BatchMode=yes",
       "-o", "ConnectTimeout=5",
       "-o", "StrictHostKeyChecking=accept-new",
-      "deploy@5.78.71.207",
+      "deploy@203.0.113.10",
       "docker ps --all"
     ], argv
   end
@@ -33,7 +33,7 @@ class Kamander::Kamal::SshClientTest < ActiveSupport::TestCase
     status = FakeStatus.new(false, 1)
 
     with_popen3(wait_thread: FakeWaitThread.new(status, 999_999), stderr: "permission denied") do
-      result = Kamander::Kamal::SshClient.new.capture(host: "5.78.71.207", user: "deploy", command: "docker ps")
+      result = Kamander::Kamal::SshClient.new.capture(host: "203.0.113.10", user: "deploy", command: "docker ps")
 
       assert_not result.success
       assert_equal "permission denied", result.error
@@ -42,7 +42,7 @@ class Kamander::Kamal::SshClientTest < ActiveSupport::TestCase
 
   test "a hung connection is killed and reported as a timeout without raising" do
     with_popen3(wait_thread: FakeHangingWaitThread.new(999_999)) do
-      result = Kamander::Kamal::SshClient.new.capture(host: "5.78.71.207", user: "deploy", command: "docker ps", timeout: 0.01)
+      result = Kamander::Kamal::SshClient.new.capture(host: "203.0.113.10", user: "deploy", command: "docker ps", timeout: 0.01)
 
       assert_not result.success
       assert_match(/timed out/, result.error)

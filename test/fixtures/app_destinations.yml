@@ -3,7 +3,7 @@ track_planner_production:
   name: production
   config_file: deploy.production.yml
   service_name: track-planner
-  servers: { web: ["5.78.71.207"] }
+  servers: { web: ["203.0.113.10"] }
   accessory_names: ["db", "caddy", "domain-validator"]
   ssh_user: deploy
   proxy_host: track-planner.example.com
@@ -13,7 +13,7 @@ track_planner_staging:
   name: staging
   config_file: deploy.staging.yml
   service_name: track-planner
-  servers: { web: ["5.78.71.208"] }
+  servers: { web: ["203.0.113.11"] }
   accessory_names: []
   ssh_user: deploy
   proxy_host: staging.track-planner.example.com

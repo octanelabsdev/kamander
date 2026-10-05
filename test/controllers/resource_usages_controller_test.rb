@@ -11,7 +11,7 @@ class ResourceUsagesControllerTest < ActionDispatch::IntegrationTest
 
   test "operator loads resource usage and sees CPU and memory per container" do
     Kamander::Kamal.ssh_client = FakeSshClient.new(responses: {
-      "5.78.71.207" => docker_stats([
+      "203.0.113.10" => docker_stats([
         stats(name: "track-planner-web-production-63cea7c46926aa7437725417bd51fb40b95cb80a", cpu: "0.42%", mem_usage: "128MiB", mem_limit: "1GiB"),
         stats(name: "track-planner-db", cpu: "0.05%", mem_usage: "64MiB", mem_limit: "512MiB")
       ])
@@ -23,7 +23,7 @@ class ResourceUsagesControllerTest < ActionDispatch::IntegrationTest
     assert_match "track-planner-db", response.body
     assert_match "0.42%", response.body
     assert_match "128MiB", response.body
-    assert_match "5.78.71.207", response.body
+    assert_match "203.0.113.10", response.body
   end
 
   test "the same container name on two servers gets a separate row per host" do
@@ -62,7 +62,7 @@ class ResourceUsagesControllerTest < ActionDispatch::IntegrationTest
 
   test "a container that yielded no metrics shows a 'no data' row" do
     Kamander::Kamal.ssh_client = FakeSshClient.new(responses: {
-      "5.78.71.207" => docker_stats([ stats(name: "track-planner-db") ])
+      "203.0.113.10" => docker_stats([ stats(name: "track-planner-db") ])
     })
 
     get resource_usage_managed_app_url(managed_apps(:track_planner))

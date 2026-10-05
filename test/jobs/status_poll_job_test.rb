@@ -22,13 +22,13 @@ class StatusPollJobTest < ActiveJob::TestCase
 
   test "a fleet poll writes rows for every managed destination" do
     Kamander::Kamal.ssh_client = FakeSshClient.new(responses: {
-      "5.78.71.207" => docker_ps([
+      "203.0.113.10" => docker_ps([
         container(name: "track-planner-web-production-a1b2c3d", state: "running", status: "Up 1 hour"),
         container(name: "track-planner-db", state: "running", status: "Up 1 hour"),
         container(name: "track-planner-caddy", state: "running", status: "Up 1 hour"),
         container(name: "track-planner-domain-validator", state: "running", status: "Up 1 hour")
       ]),
-      "5.78.71.208" => docker_ps([ container(name: "track-planner-web-staging-a1b2c3d", state: "running", status: "Up 1 hour") ])
+      "203.0.113.11" => docker_ps([ container(name: "track-planner-web-staging-a1b2c3d", state: "running", status: "Up 1 hour") ])
     })
 
     StatusPollJob.perform_now
@@ -40,8 +40,8 @@ class StatusPollJobTest < ActiveJob::TestCase
   test "a scoped poll writes only that app's destinations" do
     managed_apps(:contractor_link).update!(status: :managed)
     fake = FakeSshClient.new(responses: {
-      "5.78.71.207" => docker_ps([ container(name: "track-planner-web-production-a1b2c3d", state: "running", status: "Up 1 hour") ]),
-      "5.78.71.208" => docker_ps([ container(name: "track-planner-web-staging-a1b2c3d", state: "running", status: "Up 1 hour") ]),
+      "203.0.113.10" => docker_ps([ container(name: "track-planner-web-production-a1b2c3d", state: "running", status: "Up 1 hour") ]),
+      "203.0.113.11" => docker_ps([ container(name: "track-planner-web-staging-a1b2c3d", state: "running", status: "Up 1 hour") ]),
       "3.14.15.92" => docker_ps([ container(name: "contractor_link-web-e5e6e7e", state: "running", status: "Up 1 hour") ])
     })
     Kamander::Kamal.ssh_client = fake

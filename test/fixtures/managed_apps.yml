@@ -1,5 +1,5 @@
 track_planner:
-  repo_path: /Users/evansparkman/Development/track-planner
+  repo_path: /Users/dev/Development/track-planner
   service_name: track-planner
   display_name:
   status: managed
@@ -9,7 +9,7 @@ track_planner:
   last_scanned_at: <%= 1.hour.ago %>
 
 contractor_link:
-  repo_path: /Users/evansparkman/Development/contractor-link
+  repo_path: /Users/dev/Development/contractor-link
   service_name: contractor_link
   display_name:
   status: discovered
@@ -19,7 +19,7 @@ contractor_link:
   last_scanned_at: <%= 1.hour.ago %>
 
 old_project:
-  repo_path: /Users/evansparkman/Development/old-project
+  repo_path: /Users/dev/Development/old-project
   service_name: old_project
   display_name: Old Project (retired)
   status: hidden

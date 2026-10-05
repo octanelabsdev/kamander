@@ -4,7 +4,7 @@ class LifecycleButtonsHelperTest < ActionView::TestCase
   test "confirm text names the destination and its hosts" do
     destination = app_destinations(:track_planner_production)
 
-    assert_equal "Restart production on 5.78.71.207?", lifecycle_confirm_text(:restart, destination)
+    assert_equal "Restart production on 203.0.113.10?", lifecycle_confirm_text(:restart, destination)
   end
 
   test "confirm text falls back to base for a nil-named destination" do

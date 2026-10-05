@@ -81,14 +81,14 @@ class Kamander::Kamal::StatusReaderTest < ActiveSupport::TestCase
   end
 
   test "destinations sharing a host trigger exactly one ssh call" do
-    track_planner = destination_for("track-planner", name: "production", servers: { "web" => [ "5.78.71.207" ] },
+    track_planner = destination_for("track-planner", name: "production", servers: { "web" => [ "203.0.113.10" ] },
       accessory_names: [ "db" ])
-    contractor_link = destination_for("contractor_link", name: "production", servers: { "web" => [ "5.78.71.207" ] })
-    fake = FakeSshClient.new(responses: { "5.78.71.207" => file_fixture("docker_ps/shared_host.txt").read })
+    contractor_link = destination_for("contractor_link", name: "production", servers: { "web" => [ "203.0.113.10" ] })
+    fake = FakeSshClient.new(responses: { "203.0.113.10" => file_fixture("docker_ps/shared_host.txt").read })
 
     reports = call_reader([ track_planner, contractor_link ], fake).index_by(&:app_destination_id)
 
-    assert_equal 1, fake.calls.count { |call| call.host == "5.78.71.207" }
+    assert_equal 1, fake.calls.count { |call| call.host == "203.0.113.10" }
     assert_equal :running, reports.fetch(track_planner.id).state
     assert_equal :running, reports.fetch(contractor_link.id).state
   end

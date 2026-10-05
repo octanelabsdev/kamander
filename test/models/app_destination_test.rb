@@ -23,14 +23,14 @@ class AppDestinationTest < ActiveSupport::TestCase
 
   test "round-trips servers and accessory_names as JSON" do
     destination = app_destinations(:track_planner_production)
-    assert_equal({ "web" => [ "5.78.71.207" ] }, destination.servers)
+    assert_equal({ "web" => [ "203.0.113.10" ] }, destination.servers)
     assert_equal [ "db", "caddy", "domain-validator" ], destination.accessory_names
   end
 
   test "server_ips flattens and dedupes IPs across roles" do
     destination = app_destinations(:track_planner_production)
-    destination.servers = { "web" => [ "5.78.71.207", "5.78.71.207" ], "job" => [ "5.78.71.208" ] }
-    assert_equal [ "5.78.71.207", "5.78.71.208" ], destination.server_ips
+    destination.servers = { "web" => [ "203.0.113.10", "203.0.113.10" ], "job" => [ "203.0.113.11" ] }
+    assert_equal [ "203.0.113.10", "203.0.113.11" ], destination.server_ips
   end
 
   test "the base config destination knows it is the base" do
