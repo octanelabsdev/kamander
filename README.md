@@ -17,29 +17,25 @@ it can stop production apps. Don't expose it to a network.
 
 ## Running it
 
-Kamander runs under [corral](https://github.com/esparkman/corral) alongside the rest of the
-local fleet:
+Build CSS once and start Puma:
 
 ```sh
-corral up kamander      # then open https://kamander.test
-corral down kamander
-corral restart kamander
+bin/rails tailwindcss:build
+bin/rails server              # then open http://localhost:3000
 ```
 
-That's the supported path. Solid Queue runs **inside Puma** (`config/puma.rb:42`), so
-there's no separate worker process to remember — the 30-second fleet poll and the
-lifecycle job lanes come up with the web process.
+Solid Queue runs **inside Puma** (`config/puma.rb:42`), so there's no separate worker
+process to remember — the 30-second fleet poll and the lifecycle job lanes come up with
+the web process.
+
+If you use corral (a private local process manager), `corral up kamander` does the same
+and serves it at `https://kamander.test`.
 
 ### Not `bin/dev`
 
 `Procfile.dev` exists because Rails generated it, but `bin/dev` is the wrong entry point
 here: `tailwindcss:watch` exits immediately without a TTY and foreman takes Puma down
-with it. If you need to run outside corral, build CSS once and start Puma plainly:
-
-```sh
-bin/rails tailwindcss:build
-bin/rails server
-```
+with it.
 
 ## Requirements
 
