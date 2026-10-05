@@ -1,0 +1,51 @@
+{
+  "components": {
+    "session_banner": true,
+    "skill_nudge": true,
+    "verification_gate": true,
+    "pipeline_gate": true
+  },
+  "stack": {
+    "name": "rails",
+    "impl_dirs": [
+      "app",
+      "lib",
+      "db/migrate"
+    ],
+    "ui_dirs": [
+      "app/views",
+      "app/controllers"
+    ],
+    "test_dir": "test",
+    "operator_test_dir": "test/system",
+    "test_command": "bin/rails test",
+    "agents_bundle": {
+      "repo": "octanelabsdev/rails-agents",
+      "glob": [
+        "rails-*.md",
+        "dhh-code-reviewer.md"
+      ]
+    },
+    "mcp": {
+      "rails": {
+        "command": "bundle",
+        "args": [
+          "exec",
+          "rails-mcp-server",
+          "--mode",
+          "stdio"
+        ]
+      }
+    },
+    "mcp_guides": {
+      "resources_dir": ".config/rails-mcp/resources",
+      "download_cmd": "rails-mcp-server-download-resources",
+      "libs": [
+        "rails",
+        "turbo",
+        "stimulus",
+        "kamal"
+      ]
+    }
+  }
+}
