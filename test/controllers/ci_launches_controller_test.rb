@@ -62,6 +62,18 @@ class CiLaunchesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "CI is already starting for #{@app.display_label}.", flash[:alert]
   end
 
+  test "a launch whose job died long ago no longer blocks Run CI; it is marked failed and a new one starts" do
+    stale = @app.ci_launches.create!(sha: @head.sha, created_at: 10.minutes.ago)
+
+    assert_enqueued_with(job: CiLaunchJob) do
+      post managed_app_ci_launches_url(@app), params: { sha: @head.sha, dry_run: "1" }
+    end
+
+    assert stale.reload.failed?
+    assert_includes stale.output, "gave up"
+    assert_equal 2, @app.ci_launches.count
+  end
+
   test "once the box has the run, the launch page sends Evan to it" do
     launch = @app.ci_launches.create!(sha: @head.sha, status: :started, run_id: "track-planner-20261112T100000Z-12")
 

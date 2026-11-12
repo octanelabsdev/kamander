@@ -32,7 +32,9 @@ class CiLaunchJobTest < ActiveJob::TestCase
     assert_includes @launch.output, "kamander: boom"
   end
 
-  test "launches run on the ci lane" do
-    assert_equal "ci", CiLaunchJob.new(@launch).queue_name
+  test "launches get their own lane, so log followers holding the ci lane for a whole run can't delay them" do
+    assert_equal "ci_launch", CiLaunchJob.new(@launch).queue_name
+    assert_includes YAML.load(ERB.new(Rails.root.join("config/queue.yml").read).result, aliases: true)
+      .dig("default", "workers").flat_map { |worker| worker["queues"] }, "ci_launch"
   end
 end

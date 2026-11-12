@@ -23,7 +23,7 @@ class LaunchingCiTest < ApplicationSystemTestCase
     sha = Kamander::Ci::Checkout.read(@repo).sha
     box = Kamander::Kamal.ssh_client = FakeCiBox.serving
     Kamander::Kamal.command_runner = FakeCommandRunner.new(responses: { %w[remote-ci --dry-run] => {
-      on_spawn: -> { box.records << FakeCiBox.record(RUN_ID, app: "track-planner", sha: sha) }
+      on_spawn: -> { box.records << FakeCiBox.record(RUN_ID, app: "track-planner", sha: sha, dry_run: true) }
     } })
 
     visit managed_app_path(@app)

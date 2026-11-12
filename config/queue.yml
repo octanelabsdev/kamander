@@ -19,6 +19,11 @@ default: &default
       threads: 3
       processes: 1
       polling_interval: 0.1
+    # Launches wait at most a couple of minutes; never behind the followers above.
+    - queues: [ ci_launch ]
+      threads: 1
+      processes: 1
+      polling_interval: 0.1
 
 development:
   <<: *default

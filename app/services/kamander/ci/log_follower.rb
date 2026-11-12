@@ -1,11 +1,6 @@
 module Kamander
   module Ci
-    # Streams a live run's log to everyone watching its page, then asks the
-    # page to refresh once the run's process exits (`tail --pid` stops then).
-    #
-    # It tails from the end (-n 0), not the start: the page already rendered
-    # the log so far, and the closing refresh re-reads the whole tail, which
-    # covers any line written between that render and this tail starting.
+    # Tails from the end (-n 0): the page rendered the log so far, and the closing refresh fills any gap.
     class LogFollower
       def self.stream_name(run_id) = "ci_run_#{run_id}"
 

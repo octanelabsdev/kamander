@@ -1,7 +1,8 @@
 # The sha comes from the form, so a real run signs the commit Evan confirmed or nothing.
 class CiLaunchesController < ApplicationController
   def create
-    managed_app = ManagedApp.managed.where.not(ci_name: nil).find(params[:managed_app_id])
+    managed_app = ManagedApp.with_ci.find(params[:managed_app_id])
+    managed_app.ci_launches.give_up_stale
     launch = managed_app.ci_launches.create!(launch_params)
     CiLaunchJob.perform_later(launch)
     redirect_to launch
@@ -10,6 +11,7 @@ class CiLaunchesController < ApplicationController
   end
 
   def show
+    CiLaunch.give_up_stale
     @launch = CiLaunch.find(params[:id])
     redirect_to ci_run_path(@launch.run_id) if @launch.started?
   end

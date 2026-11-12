@@ -24,7 +24,10 @@ Rails.application.routes.draw do
   get "ci", to: "ci_runs#index", as: :ci_runs
   get "ci/latest", to: "ci_runs#latest", as: :latest_ci_runs
   get "ci/health", to: "box_healths#show", as: :ci_box_health
-  get "ci/runs/:id", to: "ci_runs#show", as: :ci_run
-  post "ci/runs/:id/cancel", to: "ci_runs#cancel", as: :cancel_ci_run
+  # Run ids are repo names, which may hold dots (foo.dev); they are never a format.
+  scope format: false, constraints: { id: /[^\/]+/ } do
+    get "ci/runs/:id", to: "ci_runs#show", as: :ci_run
+    post "ci/runs/:id/cancel", to: "ci_runs#cancel", as: :cancel_ci_run
+  end
   resources :ci_launches, only: :show, path: "ci/launches"
 end

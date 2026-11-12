@@ -1,6 +1,6 @@
 # No retries: a second remote-ci would start a second run.
 class CiLaunchJob < ApplicationJob
-  queue_as :ci
+  queue_as :ci_launch
 
   discard_on StandardError, report: true do |job, error|
     launch = job.arguments.first

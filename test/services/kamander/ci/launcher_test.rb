@@ -18,7 +18,7 @@ class Kamander::Ci::LauncherTest < ActiveSupport::TestCase
   test "Evan's dry run starts remote-ci --dry-run in the app's repo and the launch points at the run it made" do
     runner = FakeCommandRunner.new(responses: { %w[remote-ci --dry-run] => {
       lines: [ "remote-ci: fixxer @ #{@head.first(7)} (main) on ci@legion [dry run, no signoff]" ],
-      on_spawn: -> { @box.records << FakeCiBox.record(NEW_RUN, sha: @head, status: "queued") }
+      on_spawn: -> { @box.records << FakeCiBox.record(NEW_RUN, sha: @head, status: "queued", dry_run: true) }
     } })
 
     launch = launch!(dry_run: true, runner: runner)
@@ -30,6 +30,18 @@ class Kamander::Ci::LauncherTest < ActiveSupport::TestCase
     assert_equal NEW_RUN, launch.run_id
     assert_includes launch.output, "[dry run, no signoff]"
     assert runner.spawned.sole.stopped, "remote-ci should stop following once the box has the run"
+  end
+
+  test "a real run of the same commit started elsewhere isn't mistaken for Evan's dry run" do
+    runner = FakeCommandRunner.new(responses: { %w[remote-ci --dry-run] => {
+      exit_status: nil,
+      on_spawn: -> { @box.records << FakeCiBox.record(NEW_RUN, sha: @head, status: "queued", dry_run: false) }
+    } })
+
+    launch = launch!(dry_run: true, runner: runner)
+
+    assert launch.failed?
+    assert_nil launch.run_id
   end
 
   test "a real run is plain remote-ci, which stamps signoff when green" do

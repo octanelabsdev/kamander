@@ -20,14 +20,15 @@ module Kamander
         Result.new(stdout: "", success: false, error: e.message)
       end
 
-      # Public so long-running ssh commands streamed through CommandRunner
-      # (Ci::LogFollower) connect with the same options as #capture.
+      # Public so streamed ssh (LogFollower) connects with the same options.
       def self.argv(user:, host:, command:)
         [
           "ssh",
           "-o", "BatchMode=yes",
           "-o", "ConnectTimeout=#{CONNECT_TIMEOUT}",
           "-o", "StrictHostKeyChecking=accept-new",
+          "-o", "ServerAliveInterval=15",
+          "-o", "ServerAliveCountMax=3",
           "#{user}@#{host}",
           command
         ]

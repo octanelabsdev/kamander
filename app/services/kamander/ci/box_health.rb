@@ -1,7 +1,6 @@
 module Kamander
   module Ci
-    # How the CI box is doing, from one SSH call as the ci user. ci has no
-    # docker group, so Postgres and Ollama are checked by their ports.
+    # ci has no docker group, so Postgres and Ollama are checked by their ports.
     class BoxHealth
       SERVICES = %w[postgres ollama tailscale].freeze
 

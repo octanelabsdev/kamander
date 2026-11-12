@@ -12,6 +12,7 @@ class ManagedApp < ApplicationRecord
   validates :service_name, presence: true
 
   scope :ordered, -> { order(:position, :service_name) }
+  scope :with_ci, -> { managed.where.not(ci_name: nil) }
 
   def display_label
     display_name.presence || service_name

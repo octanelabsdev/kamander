@@ -1,19 +1,17 @@
-# Reads ci-box run records off the CI box over SSH; nothing is stored, the
-# box's records are the source of truth. No auth, like the rest of the app.
+# The box's records are the source of truth; nothing here is stored.
 class CiRunsController < ApplicationController
   before_action :require_ci_host
 
   def index
     @app = params[:app].presence
-    @apps = ManagedApp.where.not(ci_name: nil).distinct.order(:ci_name).pluck(:ci_name)
+    @apps = ManagedApp.with_ci.distinct.order(:ci_name).pluck(:ci_name)
     @listing = run_reader.call(app: @app)
     @step_times = Kamander::Ci::StepTimes.new(@listing.runs).rows if @app && @listing.success?
   end
 
-  # The dashboard's Latest CI strip: each managed app's newest run, loaded on
-  # click into a frame so the 30-second card broadcasts never touch the box.
+  # Loaded on click so the 30-second card broadcasts never touch the box.
   def latest
-    @ci_names = ManagedApp.managed.where.not(ci_name: nil).distinct.order(:ci_name).pluck(:ci_name)
+    @ci_names = ManagedApp.with_ci.distinct.order(:ci_name).pluck(:ci_name)
     @listing = run_reader.call
     @latest_runs = @listing.runs.group_by(&:app).transform_values(&:first)
   end

@@ -28,6 +28,15 @@ class Kamander::Ci::StepTimesTest < ActiveSupport::TestCase
     assert_equal [ 40.0 ], rows.sole.points.map(&:seconds)
   end
 
+  test "a step recorded at 0 seconds is left out, so no median is zero" do
+    rows = step_times(
+      ci_run("a", "2026-11-12T08:00:00Z", { "Tests: Seeds" => 0.0 }),
+      ci_run("b", "2026-11-12T09:00:00Z", { "Tests: Seeds" => 6.0 })
+    )
+
+    assert_equal [ 6.0 ], rows.sole.points.map(&:seconds)
+  end
+
   test "with no timed runs there are no rows" do
     assert_empty step_times(ci_run("a", "2026-11-12T08:00:00Z", { "Tests: Rails" => nil }))
   end

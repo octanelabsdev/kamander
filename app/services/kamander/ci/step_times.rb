@@ -29,7 +29,7 @@ module Kamander
         points = Hash.new { |hash, name| hash[name] = [] }
         @runs.each do |run|
           run.steps.each do |step|
-            next unless step.name.start_with?("Tests:") && step.passed? && step.seconds
+            next unless step.name.start_with?("Tests:") && step.passed? && step.seconds.to_f.positive?
 
             points[step.name] << Point.new(run: run, seconds: step.seconds.to_f)
           end

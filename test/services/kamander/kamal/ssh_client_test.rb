@@ -24,6 +24,8 @@ class Kamander::Kamal::SshClientTest < ActiveSupport::TestCase
       "-o", "BatchMode=yes",
       "-o", "ConnectTimeout=5",
       "-o", "StrictHostKeyChecking=accept-new",
+      "-o", "ServerAliveInterval=15",
+      "-o", "ServerAliveCountMax=3",
       "deploy@203.0.113.10",
       "docker ps --all"
     ], argv

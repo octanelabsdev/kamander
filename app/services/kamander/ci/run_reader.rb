@@ -1,13 +1,6 @@
 module Kamander
   module Ci
-    # Lists ci-box run records over one SSH call. Like SshClient it never
-    # raises: an unreachable box comes back as a Listing with an error.
-    #
-    # The box prints one JSON record per line, a `---` line, then the ids of
-    # unfinished records whose pid is still running them. A pid only counts if
-    # /proc/<pid>/cmdline is remote-ci's `bash -l -c source …` AND ends with
-    # this record's path (remote-ci passes it last), so a pid reused after a
-    # reboot can never make a dead run look live.
+    # A pid counts as live only while its cmdline ends with this record's path, so a reused pid never revives a run.
     class RunReader
       RUNS_DIR = "/data/ci/runs"
       LOGS_DIR = "/data/ci/logs"
@@ -35,8 +28,7 @@ module Kamander
         @proc_root = proc_root
       end
 
-      # Records are named <app>-<UTC stamp>-<n>.json and the stamp starts with
-      # a digit, so `<app>-[0-9]*` keeps fixxer from matching fixxer-docs.
+      # `<app>-[0-9]*` keeps fixxer from matching fixxer-docs: the stamp starts with a digit.
       def call(app: nil, limit: DEFAULT_LIMIT)
         return refused(app) if app && !app.match?(SAFE_NAME)
 

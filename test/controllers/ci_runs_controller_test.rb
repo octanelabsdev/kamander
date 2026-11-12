@@ -259,6 +259,32 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, box.calls.count { |call| call.command.include?("kill") }
   end
 
+  test "a run of a repo with a dot in its name opens and can be cancelled" do
+    id = "foo.dev-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, app: "foo.dev", status: "running").merge(pid: 4242), live: [ id ],
+      responses: { "legion" => "#{Kamander::Ci::Canceller::SENT}\n" })
+
+    get ci_run_url(id)
+    assert_response :success
+    assert_select "h1", text: "foo.dev"
+
+    post cancel_ci_run_url(id)
+    assert_redirected_to ci_run_path(id)
+    assert_match(/Cancel sent/, flash[:notice])
+  end
+
+  test "a test step recorded at 0 seconds doesn't break the step times chart" do
+    zero = { name: "Tests: Seeds", result: "passed", took: "0s", seconds: 0.0 }
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(
+      record("fixxer-20261112T090000Z-1", steps: [ zero ]),
+      record("fixxer-20261112T100000Z-2", steps: [ zero ]).merge(started_at: "2026-11-12T10:00:00Z")
+    )
+
+    get ci_runs_url(app: "fixxer")
+
+    assert_response :success
+  end
+
   test "a run id the box doesn't have is a 404" do
     stub_box ci_records
 

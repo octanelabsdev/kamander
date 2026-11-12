@@ -13,7 +13,7 @@
             <%= link_to ci_run_path(run.id), data: { turbo_frame: "_top" },
                   class: "flex items-center gap-2 rounded-md border border-neutral-800 px-3 py-1.5 text-sm text-neutral-200 hover:bg-neutral-900" do %>
               <%= ci_name %> <%= ci_state_pill(run) %>
-              <% if run.started_at %><span class="text-xs text-neutral-500"><%= time_ago_in_words(run.started_at) %> ago</span><% end %>
+              <% if run.started_at %><span class="text-xs text-neutral-500"><%= ci_ago(run.started_at) %></span><% end %>
             <% end %>
           <% else %>
             <span class="flex items-center gap-2 rounded-md border border-neutral-900 px-3 py-1.5 text-sm text-neutral-500">

@@ -35,9 +35,7 @@ module Kamander
         ScannedApp.new(repo_path: repo_path, service_name: nil, ci_name: nil, destinations: [], error: e.message)
       end
 
-      # The CI box keys runs by the GitHub repo name, so a worktree named
-      # fixxer-docs is still "fixxer". Same rule as ci-box's remote-ci. Without
-      # its own .git, git would walk up and report an enclosing repo's origin.
+      # remote-ci's rule (repo name from origin); the .git check stops git reporting an enclosing repo's origin.
       def ci_name(repo_path)
         return unless File.exist?(File.join(repo_path, ".git"))
 

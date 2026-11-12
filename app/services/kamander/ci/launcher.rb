@@ -35,7 +35,7 @@ module Kamander
 
           POLLS.times do
             finished = process.finished?
-            if (run = runs.runs.find { |record| record.sha == @launch.sha && known.exclude?(record.id) })
+            if (run = runs.runs.find { |record| record.sha == @launch.sha && record.dry_run == @launch.dry_run && known.exclude?(record.id) })
               process.stop
               return @launch.update!(status: :started, run_id: run.id, output: read(output))
             end
@@ -45,7 +45,7 @@ module Kamander
           end
 
           process.stop
-          fail!("#{read(output)}kamander: no run record on the box after #{POLLS * POLL_INTERVAL / 60} minutes; check the CI page.")
+          fail!("#{read(output)}kamander: no run record on the box after #{(POLLS * @poll_interval).round} seconds; check the CI page.")
         end
 
         def app = @launch.managed_app

@@ -1,7 +1,6 @@
 module Kamander
   module Ci
-    # Sends TERM to a run's pid only if, in that same command, its cmdline is
-    # still that run: a pid reused after a reboot is never signalled.
+    # The cmdline check and the kill are one command, so a reused pid is never signalled.
     class Canceller
       SENT = "kamander: cancel sent"
 

@@ -1,8 +1,6 @@
 module Kamander
   module Ci
-    # One ci-box run record, read from the box and never stored. `alive` is
-    # whether the record's pid is still running this exact record; ci-box
-    # leaves a rebooted or kill -9'd run stuck at queued/running forever.
+    # ci-box leaves a rebooted or kill -9'd run at queued/running forever, so `alive` decides live vs lost.
     Run = Data.define(:id, :app, :sha, :branch, :dry_run, :status, :exit_code, :started_at, :finished_at,
                       :host, :pid, :log, :steps, :slowest, :alive) do
       def self.from_record(record, alive:)
@@ -62,17 +60,15 @@ module Kamander
       end
 
       def duration(now: Time.current)
-        return unless started_at
-
-        ((finished_at || (live? ? now : nil))&.-(started_at))&.round
+        ended_at = finished_at || (now if live?)
+        (ended_at - started_at).round if started_at && ended_at
       end
 
       def short_sha
         sha.to_s.first(7)
       end
 
-      # A green bin/ci ends with ci-box's "Signoff: …" step, which stamps the
-      # gh signoff status. Dry runs skip it.
+      # The "Signoff: …" step stamps gh signoff; dry runs skip it.
       def signed_off?
         steps.any? { |step| step.name.start_with?("Signoff") && step.passed? }
       end
