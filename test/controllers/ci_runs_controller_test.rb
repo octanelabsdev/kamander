@@ -3,32 +3,50 @@ require "test_helper"
 class CiRunsControllerTest < ActionDispatch::IntegrationTest
   teardown { Kamander::Kamal.ssh_client = nil }
 
-  test "Evan opens CI and sees each run with its failing step highlighted" do
+  test "Evan opens CI and sees which step failed, which runs signed off, and which were dry runs" do
     stub_box ci_records(
       record("beanlink-20261112T100000Z-12", app: "beanlink", status: "failed", steps: [
         { name: "Style: Ruby", result: "passed", took: "1s" }, { name: "Tests: Rails", result: "failed", took: "50s" }
       ]),
-      record("fixxer-20261112T090000Z-11", status: "passed", dry_run: true)
+      record("fixxer-20261112T090000Z-11", status: "passed", dry_run: true),
+      record("fixxer-20261112T080000Z-10", status: "passed", steps: [
+        { name: "Tests: Rails", result: "passed", took: "40s" }, { name: "Signoff: All systems go.", result: "passed", took: "1s" }
+      ])
     )
 
     get ci_runs_url
 
     assert_response :success
-    assert_select "tr#ci_run_beanlink-20261112T100000Z-12" do
-      assert_select "td", text: /beanlink/
-      assert_select "[data-step-result=failed]", text: /Tests: Rails/
-      assert_select "a[href=?]", ci_run_path("beanlink-20261112T100000Z-12")
+    assert_select "#ci_run_beanlink-20261112T100000Z-12" do
+      assert_select "a[href=?]", ci_run_path("beanlink-20261112T100000Z-12"), text: "beanlink"
+      assert_select "[data-step-result=failed]", text: "Failed at Tests: Rails"
+      assert_select "[data-step]", count: 2
+      assert_select "[data-signed-off]", count: 0
     end
-    assert_select "tr#ci_run_fixxer-20261112T090000Z-11", text: /dry run/
+    assert_select "#ci_run_fixxer-20261112T090000Z-11", text: /dry run/
+    assert_select "#ci_run_fixxer-20261112T080000Z-10 [data-signed-off]", text: /signed/
   end
 
-  test "filtering the CI page by app asks the box for only that app's runs" do
+  test "a run still going sits in the In progress block above the finished ones" do
+    id = "fixxer-20261112T100000Z-12"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "running"), record("fixxer-20261112T090000Z-11"), live: [ id ])
+
+    get ci_runs_url
+
+    assert_select "#ci_in_progress #ci_run_#{id}"
+    assert_select "#ci_in_progress #ci_run_fixxer-20261112T090000Z-11", count: 0
+  end
+
+  test "Evan filters CI to one app with a single click on its tab" do
+    managed_apps(:track_planner).update!(ci_name: "fixxer")
     fake = stub_box(ci_records(record("fixxer-20261112T090000Z-11")))
 
     get ci_runs_url(app: "fixxer")
 
     assert_response :success
     assert_includes fake.calls.sole.command, "fixxer-[0-9]*.json"
+    assert_select "nav a[aria-current=page][href=?]", ci_runs_path(app: "fixxer"), text: "fixxer"
+    assert_select "nav a[href=?]", ci_runs_path, text: "All apps"
   end
 
   test "CI box unreachable shows the error and the rest of Kamander still works" do

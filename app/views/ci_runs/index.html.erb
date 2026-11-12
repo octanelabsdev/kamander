@@ -3,13 +3,12 @@
 <section class="w-full">
   <header class="mb-6 flex flex-wrap items-center justify-between gap-4">
     <h1 class="text-xl font-semibold text-neutral-100">CI</h1>
-    <%= form_with url: ci_runs_path, method: :get, class: "flex items-center gap-2" do |form| %>
-      <%= form.label :app, "App", class: "text-sm text-neutral-400" %>
-      <%= form.select :app, @apps, { include_blank: "All apps", selected: @app },
-            class: "rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm text-neutral-100" %>
-      <%= form.submit "Filter", name: nil,
-            class: "rounded-md border border-neutral-700 px-3 py-1 text-sm text-neutral-300 hover:bg-neutral-800" %>
-    <% end %>
+    <nav aria-label="Filter by app" class="flex flex-wrap gap-1 text-sm">
+      <% ([ [ "All apps", nil ] ] + @apps.map { |name| [ name, name ] }).each do |label, app| %>
+        <%= link_to label, ci_runs_path(app: app), aria: { current: ("page" if @app == app) },
+              class: "rounded-md px-3 py-1 #{@app == app ? "bg-neutral-800 text-neutral-100" : "text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"}" %>
+      <% end %>
+    </nav>
   </header>
 
   <% if !@listing.success? %>
@@ -19,38 +18,23 @@
   <% elsif @listing.runs.empty? %>
     <p class="text-sm italic text-neutral-500">No CI runs on the box<%= " for #{@app}" if @app %> yet.</p>
   <% else %>
+    <% in_progress, finished = @listing.runs.partition(&:live?) %>
     <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm">
-        <thead class="border-b border-neutral-800 text-xs uppercase text-neutral-500">
-          <tr>
-            <th class="py-2 pr-4 font-medium">App</th>
-            <th class="py-2 pr-4 font-medium">Commit</th>
-            <th class="py-2 pr-4 font-medium">Status</th>
-            <th class="py-2 pr-4 font-medium">Steps</th>
-            <th class="py-2 pr-4 font-medium">Took</th>
-            <th class="py-2 font-medium">Started</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-neutral-900">
-          <% @listing.runs.each do |run| %>
-            <tr id="ci_run_<%= run.id %>" class="align-top">
-              <td class="py-2 pr-4 text-neutral-100">
-                <%= link_to run.app, ci_run_path(run.id), class: "hover:underline" %>
-              </td>
-              <td class="py-2 pr-4 font-mono text-xs text-neutral-400">
-                <%= run.branch %> &middot; <%= run.short_sha %>
-                <% if run.dry_run %><span class="ml-1 rounded bg-neutral-800 px-1 font-sans text-neutral-300">dry run</span><% end %>
-              </td>
-              <td class="py-2 pr-4"><%= ci_state_pill(run) %></td>
-              <td class="py-2 pr-4"><div class="flex flex-wrap gap-1"><%= safe_join(run.steps.map { |step| ci_step_pill(step) }) %></div></td>
-              <td class="py-2 pr-4 text-neutral-400"><%= ci_duration(run.duration) %></td>
-              <td class="py-2 text-neutral-400">
-                <% if run.started_at %><%= time_tag run.started_at, "#{time_ago_in_words(run.started_at)} ago" %><% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+      <div class="min-w-[64rem]">
+        <% if in_progress.any? %>
+          <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-sky-400">In progress</h2>
+          <div id="ci_in_progress" class="mb-8 divide-y divide-neutral-900 rounded-lg border border-sky-900/60 bg-sky-950/10">
+            <%= render partial: "ci_runs/run_row", collection: in_progress, as: :run %>
+          </div>
+        <% end %>
+
+        <% if finished.any? %>
+          <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Recent</h2>
+          <div class="divide-y divide-neutral-900 rounded-lg border border-neutral-800">
+            <%= render partial: "ci_runs/run_row", collection: finished, as: :run %>
+          </div>
+        <% end %>
+      </div>
     </div>
   <% end %>
 </section>

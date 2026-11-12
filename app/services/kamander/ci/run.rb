@@ -62,6 +62,16 @@ module Kamander
       def short_sha
         sha.to_s.first(7)
       end
+
+      # A green bin/ci ends with ci-box's "Signoff: …" step, which stamps the
+      # gh signoff status. Dry runs skip it.
+      def signed_off?
+        steps.any? { |step| step.name.start_with?("Signoff") && step.passed? }
+      end
+
+      def failed_step
+        steps.find { |step| !step.passed? }
+      end
     end
   end
 end

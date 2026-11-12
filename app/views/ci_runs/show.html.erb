@@ -17,32 +17,59 @@
       CI box unreachable: <%= @listing.error %>
     </p>
   <% else %>
-    <header class="mt-2 mb-6 flex flex-wrap items-center gap-3">
-      <h1 class="text-xl font-semibold text-neutral-100"><%= @run.app %></h1>
-      <%= ci_state_pill(@run) %>
-      <span class="font-mono text-xs text-neutral-400"><%= @run.branch %> &middot; <%= @run.short_sha %></span>
-      <% if @run.dry_run %><span class="rounded bg-neutral-800 px-1 text-xs text-neutral-300">dry run</span><% end %>
-      <span class="text-sm text-neutral-500"><%= ci_duration(@run.duration) %></span>
+    <header class="mt-2 mb-6">
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-xl font-semibold text-neutral-100"><%= @run.app %></h1>
+        <%= ci_state_pill(@run) %>
+        <% if @run.dry_run %>
+          <span class="rounded bg-neutral-800 px-1.5 py-0.5 text-xs text-neutral-400">dry run</span>
+        <% elsif @run.signed_off? %>
+          <span class="text-xs text-emerald-400" data-signed-off title="This run stamped gh signoff">✓ signed</span>
+        <% end %>
+      </div>
+      <p class="mt-1 flex flex-wrap items-baseline gap-x-3 text-sm text-neutral-400">
+        <span><%= @run.branch %></span>
+        <span class="font-mono text-xs text-neutral-500"><%= @run.short_sha %></span>
+        <span class="text-neutral-600">&middot;</span>
+        <span class="tabular-nums"><%= ci_duration(@run.duration) %></span>
+        <span class="text-neutral-600">&middot;</span>
+        <span>started <%= ci_ago(@run.started_at) %></span>
+      </p>
     </header>
 
-    <% if @run.steps.any? %>
-      <table class="mb-6 text-sm">
-        <tbody>
-          <% @run.steps.each do |step| %>
-            <tr>
-              <td class="py-1 pr-6"><%= ci_step_pill(step) %></td>
-              <td class="py-1 text-neutral-500"><%= step.took %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% end %>
+    <div class="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
+      <section>
+        <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Steps</h2>
+        <% if @run.steps.any? %>
+          <ol class="divide-y divide-neutral-900 rounded-lg border border-neutral-800 text-sm">
+            <% @run.steps.each do |step| %>
+              <li class="flex items-center gap-2 px-3 py-1.5 <%= "bg-red-950/30" unless step.passed? %>" data-step-result="<%= step.result %>">
+                <span class="w-4 shrink-0 text-center <%= step.passed? ? "text-emerald-500" : "text-red-400" %>"><%= step.passed? ? "✓" : "✗" %></span>
+                <span class="min-w-0 flex-1 truncate <%= step.passed? ? "text-neutral-300" : "text-red-300" %>" title="<%= step.name %>"><%= step.name %></span>
+                <span class="shrink-0 tabular-nums text-xs text-neutral-500"><%= step.took %></span>
+              </li>
+            <% end %>
+            <% if @run.live? %>
+              <li class="flex items-center gap-2 px-3 py-1.5 text-sky-400">
+                <span class="w-4 shrink-0 text-center">…</span><span>running</span>
+              </li>
+            <% end %>
+          </ol>
+        <% else %>
+          <p class="text-sm italic text-neutral-500"><%= @run.status == "queued" ? "Waiting for the box." : "No steps recorded." %></p>
+        <% end %>
+      </section>
 
-    <h2 class="mb-2 text-sm font-medium text-neutral-400">Log <span class="font-normal text-neutral-600">(last <%= Kamander::Ci::RunReader::LOG_LINES %> lines)</span></h2>
-    <% if @log || @run.live? %>
-      <pre id="ci_run_log" class="max-h-[70vh] overflow-auto rounded-md border border-neutral-800 bg-black p-3 font-mono text-xs leading-relaxed text-neutral-300"><%= @log %></pre>
-    <% else %>
-      <p class="text-sm italic text-neutral-500">Log unavailable.</p>
-    <% end %>
+      <section class="min-w-0">
+        <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+          Log <span class="normal-case tracking-normal text-neutral-600">(last <%= Kamander::Ci::RunReader::LOG_LINES %> lines)</span>
+        </h2>
+        <% if @log || @run.live? %>
+          <pre id="ci_run_log" class="h-[calc(100vh-14rem)] min-h-96 overflow-auto whitespace-pre-wrap wrap-anywhere rounded-lg border border-neutral-800 bg-black p-4 font-mono text-xs leading-relaxed text-neutral-300"><%= @log %></pre>
+        <% else %>
+          <p class="text-sm italic text-neutral-500">Log unavailable.</p>
+        <% end %>
+      </section>
+    </div>
   <% end %>
 </section>
