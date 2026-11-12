@@ -109,18 +109,18 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
   test "an unreachable CI box comes back as an error instead of raising" do
     fake = FakeSshClient.new(responses: { "legion" => :unreachable })
 
-    listing = Kamander::Ci::RunReader.new(host: "legion", user: "octane", ssh_client: fake).call
+    listing = Kamander::Ci::RunReader.new(host: "legion", user: "ci", ssh_client: fake).call
 
     assert_not listing.success?
     assert_equal "connection unreachable", listing.error
     assert_empty listing.runs
-    assert_equal "octane", fake.calls.sole.user
+    assert_equal "ci", fake.calls.sole.user
   end
 
   test "an app name that isn't a plain repo name is refused before anything reaches the shell" do
     fake = FakeSshClient.new
 
-    listing = Kamander::Ci::RunReader.new(host: "legion", user: "octane", ssh_client: fake).call(app: "x; rm -rf /")
+    listing = Kamander::Ci::RunReader.new(host: "legion", user: "ci", ssh_client: fake).call(app: "x; rm -rf /")
 
     assert_not listing.success?
     assert_empty fake.calls

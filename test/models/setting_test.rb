@@ -14,11 +14,11 @@ class SettingTest < ActiveSupport::TestCase
     assert_equal 1, Setting.count
   end
 
-  test "CI points at octane@legion out of the box" do
+  test "CI points at ci@legion out of the box" do
     Setting.delete_all
     setting = Setting.current
     assert_equal "legion", setting.ci_host
-    assert_equal "octane", setting.ci_user
+    assert_equal "ci", setting.ci_user
   end
 
   test "a blank CI host is stored as nil, which turns the CI panel off" do

@@ -76,7 +76,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_055618) do
 
   create_table "settings", force: :cascade do |t|
     t.string "ci_host", default: "legion"
-    t.string "ci_user", default: "octane", null: false
+    t.string "ci_user", default: "ci", null: false
     t.datetime "created_at", null: false
     t.string "default_ssh_user", default: "deploy", null: false
     t.string "scan_root", default: "~/Development", null: false
