@@ -11,6 +11,13 @@
     </nav>
   </header>
 
+  <section class="mb-6">
+    <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Box health</h2>
+    <%= turbo_frame_tag :box_health, class: "block aria-busy:opacity-50 transition-opacity" do %>
+      <%= link_to "Load box health", ci_box_health_path, class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+    <% end %>
+  </section>
+
   <% if !@listing.success? %>
     <p role="alert" class="rounded-md border border-red-900 bg-red-950/40 px-4 py-2 text-sm text-red-300">
       CI box unreachable: <%= @listing.error %>

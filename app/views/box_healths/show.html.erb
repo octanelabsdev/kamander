@@ -1,0 +1,36 @@
+<%= turbo_frame_tag :box_health, class: "block aria-busy:opacity-50 transition-opacity" do %>
+  <% if !@health.success? %>
+    <p role="alert" class="rounded-md border border-red-900 bg-red-950/40 px-4 py-2 text-sm text-red-300">
+      CI box unreachable: <%= @health.error %>
+    </p>
+  <% else %>
+    <dl id="box_health_stats" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-8 text-sm">
+      <%= box_health_stat "Load", (@health.load ? @health.load.map { |value| format("%.2f", value) }.join(" · ") : nil),
+            note: (@health.cpus ? "#{@health.cpus} CPUs" : nil),
+            warn: @health.load && @health.cpus && @health.load.first > @health.cpus %>
+      <%= box_health_stat "Memory", box_health_percent(@health.memory_used_ratio), note: "used",
+            warn: @health.memory_used_ratio.to_f > 0.9 %>
+      <%= box_health_stat "Swap / zram", box_health_percent(@health.swap_used_ratio), note: "used",
+            warn: @health.swap_used_ratio.to_f > 0.5 %>
+      <% { "/" => "Disk /", "/data" => "Disk /data" }.each do |mount, label| %>
+        <% free, total = @health.disks[mount] %>
+        <%= box_health_stat label, (free ? number_to_human_size(free * 1024) : nil), note: (total ? "free of #{number_to_human_size(total * 1024)}" : nil),
+              warn: free && total && free.fdiv(total) < 0.1 %>
+      <% end %>
+      <%= box_health_stat "GPU", (@health.gpu_temp ? "#{@health.gpu_temp}°C" : nil), warn: @health.gpu_temp.to_i >= 85 %>
+      <%= box_health_stat "Services", nil do %>
+        <% @health.services.each do |name, state| %>
+          <span class="mr-2 inline-flex items-center gap-1 whitespace-nowrap" data-service="<%= name %>" data-state="<%= state %>">
+            <span class="h-2 w-2 rounded-full <%= { "up" => "bg-emerald-500", "down" => "bg-red-500" }.fetch(state, "bg-neutral-600") %>"></span><%= name %>
+          </span>
+        <% end %>
+      <% end %>
+      <%= box_health_stat "Battery", (@health.battery ? "#{@health.battery}%" : nil),
+            note: [ @health.battery_status, (@health.battery_limit ? "limit #{@health.battery_limit}%" : nil) ].compact.join(" · ").presence %>
+    </dl>
+    <p class="mt-2 text-xs text-neutral-600">
+      <%= @host %> · up <%= @health.uptime ? distance_of_time_in_words(@health.uptime) : "unknown" %> · read <%= Time.current.localtime.strftime("%H:%M:%S") %>
+      · <%= link_to "Reload", ci_box_health_path, class: "text-neutral-400 hover:text-neutral-200" %>
+    </p>
+  <% end %>
+<% end %>

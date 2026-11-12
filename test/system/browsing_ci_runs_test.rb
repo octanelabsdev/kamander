@@ -52,4 +52,16 @@ class BrowsingCiRunsTest < ApplicationSystemTestCase
     assert_text "Cancel sent"
     assert_current_path ci_run_path(id)
   end
+
+  test "Evan loads box health on the CI page and sees the box's services" do
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(responses: { "legion" => BOX_HEALTH_OUTPUT })
+
+    visit ci_runs_path
+    click_on "Load box health"
+
+    within("#box_health_stats") do
+      assert_selector "[data-service=postgres][data-state=up]", text: "postgres"
+      assert_text "32 CPUs"
+    end
+  end
 end
