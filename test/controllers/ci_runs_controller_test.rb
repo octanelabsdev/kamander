@@ -49,6 +49,33 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "nav a[href=?]", ci_runs_path, text: "All apps"
   end
 
+  test "filtered to one app, Evan sees each test step's time across runs and spots the slowdown" do
+    timed = ->(id, started, seconds) do
+      record(id, steps: [ { name: "Tests: System", result: "passed", took: "#{seconds}s", seconds: seconds } ]).merge(started_at: started)
+    end
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(
+      timed.("fixxer-20261112T080000Z-1", "2026-11-12T08:00:00Z", 30.0),
+      timed.("fixxer-20261112T090000Z-2", "2026-11-12T09:00:00Z", 31.0),
+      timed.("fixxer-20261112T100000Z-3", "2026-11-12T10:00:00Z", 943.2)
+    )
+
+    get ci_runs_url(app: "fixxer")
+
+    assert_select "#ci_step_times [data-step-times='Tests: System']" do
+      assert_select "a[data-seconds]", count: 3
+      assert_select "a[href=?].bg-amber-500", ci_run_path("fixxer-20261112T100000Z-3")
+      assert_select "[data-latest].text-amber-400", text: /15m 43s/
+    end
+  end
+
+  test "all apps shows no step times; they only make sense for one app" do
+    stub_box ci_records(record("fixxer-20261112T090000Z-11"))
+
+    get ci_runs_url
+
+    assert_select "#ci_step_times", count: 0
+  end
+
   test "CI box unreachable shows the error and the rest of Kamander still works" do
     stub_box :unreachable
 

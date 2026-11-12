@@ -7,6 +7,7 @@ class CiRunsController < ApplicationController
     @app = params[:app].presence
     @apps = ManagedApp.where.not(ci_name: nil).distinct.order(:ci_name).pluck(:ci_name)
     @listing = run_reader.call(app: @app)
+    @step_times = Kamander::Ci::StepTimes.new(@listing.runs).rows if @app && @listing.success?
   end
 
   # The dashboard's Latest CI strip: each managed app's newest run, loaded on
