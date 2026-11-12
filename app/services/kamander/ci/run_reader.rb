@@ -10,8 +10,12 @@ module Kamander
     # reboot can never make a dead run look live.
     class RunReader
       RUNS_DIR = "/data/ci/runs"
+      LOGS_DIR = "/data/ci/logs"
       DEFAULT_LIMIT = 50
-      REPO_NAME = /\A[A-Za-z0-9._-]+\z/
+      LOG_LINES = 2_000
+      # Repo names and record ids share this alphabet; nothing else reaches the shell.
+      SAFE_NAME = /\A[A-Za-z0-9._-]+\z/
+      ANSI_ESCAPE = /\e\[[0-9;]*[A-Za-z]/
 
       Listing = Data.define(:runs, :error) do
         def success?
@@ -19,35 +23,56 @@ module Kamander
         end
       end
 
-      def initialize(host:, user:, ssh_client: Kamander::Kamal.ssh_client, runs_dir: RUNS_DIR, proc_root: "/proc")
+      def initialize(host:, user:, ssh_client: Kamander::Kamal.ssh_client, runs_dir: RUNS_DIR, logs_dir: LOGS_DIR,
+        proc_root: "/proc")
         @host = host
         @user = user
         @ssh_client = ssh_client
         @runs_dir = runs_dir
+        @logs_dir = logs_dir
         @proc_root = proc_root
       end
 
+      # Records are named <app>-<UTC stamp>-<n>.json and the stamp starts with
+      # a digit, so `<app>-[0-9]*` keeps fixxer from matching fixxer-docs.
       def call(app: nil, limit: DEFAULT_LIMIT)
-        return Listing.new(runs: [], error: "not a repo name: #{app}") if app && !app.match?(REPO_NAME)
+        return refused(app) if app && !app.match?(SAFE_NAME)
 
-        result = @ssh_client.capture(host: @host, user: @user, command: script(app: app, limit: Integer(limit)))
-        return Listing.new(runs: [], error: result.error) unless result.success?
+        listing = list(app ? "#{app}-[0-9]*.json" : "*.json", limit: Integer(limit))
+        app ? listing.with(runs: listing.runs.select { |run| run.app == app }) : listing
+      end
 
-        runs = parse(result.stdout)
-        runs = runs.select { |run| run.app == app } if app
-        Listing.new(runs: runs.sort_by { |run| run.started_at || Time.at(0) }.reverse, error: nil)
-      rescue JSON::ParserError => e
-        Listing.new(runs: [], error: "unreadable run record: #{e.message}")
+      def find(id)
+        return refused(id) unless id.match?(SAFE_NAME)
+
+        list("#{id}.json", limit: 1)
+      end
+
+      # The tail of a run's log, or nil when the box can't be read.
+      def log(id)
+        return unless id.match?(SAFE_NAME)
+
+        result = @ssh_client.capture(host: @host, user: @user,
+          command: "tail -n #{LOG_LINES} #{@logs_dir.shellescape}/#{id}.log")
+        result.stdout.gsub(ANSI_ESCAPE, "") if result.success?
       end
 
       private
 
-      # Records are named <app>-<UTC stamp>-<n>.json and the stamp starts with
-      # a digit, so `<app>-[0-9]*` keeps fixxer from matching fixxer-docs.
-      def script(app:, limit:)
-        dir = @runs_dir.shellescape
-        pattern = app ? "#{dir}/#{app}-[0-9]*.json" : "#{dir}/*.json"
+      def refused(name)
+        Listing.new(runs: [], error: "not a run or repo name: #{name}")
+      end
 
+      def list(glob, limit:)
+        result = @ssh_client.capture(host: @host, user: @user, command: script(pattern: "#{@runs_dir.shellescape}/#{glob}", limit: limit))
+        return Listing.new(runs: [], error: result.error) unless result.success?
+
+        Listing.new(runs: parse(result.stdout).sort_by { |run| run.started_at || Time.at(0) }.reverse, error: nil)
+      rescue JSON::ParserError => e
+        Listing.new(runs: [], error: "unreadable run record: #{e.message}")
+      end
+
+      def script(pattern:, limit:)
         <<~SH
           files=$(ls -t #{pattern} 2>/dev/null | head -n #{limit})
           if [ -z "$files" ]; then echo ---; exit 0; fi

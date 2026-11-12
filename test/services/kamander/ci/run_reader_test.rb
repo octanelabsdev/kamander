@@ -79,6 +79,26 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
     assert_equal [ "fixxer" ], read(app: "fixxer").runs.map(&:app)
   end
 
+  test "find returns the one run named by its id, or nil when the box has no such record" do
+    write_record "fixxer-20261112T150000Z-61"
+    write_record "fixxer-20261112T150100Z-62"
+    reader = reader()
+
+    assert_equal "fixxer-20261112T150100Z-62", reader.find("fixxer-20261112T150100Z-62").runs.sole.id
+    assert_empty reader.find("fixxer-20261112T000000Z-00").runs
+    assert_not reader.find("../../etc/passwd").success?
+  end
+
+  test "log returns the tail of a run's log with terminal colours stripped" do
+    logs_dir = File.join(@root, "logs")
+    FileUtils.mkdir_p(logs_dir)
+    File.write(File.join(logs_dir, "fixxer-20261112T160000Z-71.log"), "\e[1;32m✅ Style: Ruby passed in 1s\e[0m\nline two\n")
+
+    log = reader.log("fixxer-20261112T160000Z-71")
+
+    assert_equal "✅ Style: Ruby passed in 1s\nline two\n", log
+  end
+
   test "an empty runs directory is an empty listing, not an error" do
     listing = read
 
@@ -109,8 +129,12 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
   private
 
     def read(**options)
+      reader.call(**options)
+    end
+
+    def reader
       Kamander::Ci::RunReader.new(host: "local", user: "me", ssh_client: LocalShell.new,
-        runs_dir: @runs_dir, proc_root: @proc_root).call(**options)
+        runs_dir: @runs_dir, logs_dir: File.join(@root, "logs"), proc_root: @proc_root)
     end
 
     def write_record(id, app: "fixxer", status: "passed", pid: 999, exit_code: nil, steps: [],

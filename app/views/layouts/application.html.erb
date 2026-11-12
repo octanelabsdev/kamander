@@ -28,6 +28,9 @@
       <nav class="container mx-auto flex items-center justify-between px-5 py-4">
         <%= link_to "Kamander", root_path, class: "text-lg font-semibold text-neutral-100" %>
         <div class="flex items-center gap-4 text-sm">
+          <% if Setting.current.ci_host %>
+            <%= link_to "CI", ci_runs_path, class: "text-neutral-400 hover:text-neutral-100" %>
+          <% end %>
           <%= link_to "Scan review", scan_path, class: "text-neutral-400 hover:text-neutral-100" %>
           <%= link_to "Settings", edit_setting_path, class: "text-neutral-400 hover:text-neutral-100" %>
         </div>

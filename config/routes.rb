@@ -19,4 +19,7 @@ Rails.application.routes.draw do
   end
 
   resources :operations, only: %i[show create]
+
+  get "ci", to: "ci_runs#index", as: :ci_runs
+  get "ci/runs/:id", to: "ci_runs#show", as: :ci_run
 end
