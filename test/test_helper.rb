@@ -19,5 +19,11 @@ module ActiveSupport
     # available regardless of fork/load order.
     require "turbo/broadcastable/test_helper"
     include Turbo::Broadcastable::TestHelper
+
+    # A helper named run silently replaces Minitest's own and the file errors far from the cause.
+    def self.method_added(name)
+      raise NameError, "#{self}#run shadows Minitest's run; name the helper something else (ci_run)" if name == :run
+      super
+    end
   end
 end
