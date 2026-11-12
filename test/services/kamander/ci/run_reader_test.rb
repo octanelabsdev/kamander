@@ -56,6 +56,16 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
     assert runs.none?(&:live?)
   end
 
+  test "older records without a pid or -<n> suffix still list, and an unfinished one shows as lost" do
+    write_record "fixxer-20261101T090000Z", status: "passed", exit_code: 0, pid: nil, started_at: "2026-11-01T09:00:00Z"
+    write_record "fixxer-20261101T080000Z", status: "running", pid: nil, started_at: "2026-11-01T08:00:00Z"
+
+    runs = read(app: "fixxer").runs
+
+    assert_equal %w[fixxer-20261101T090000Z fixxer-20261101T080000Z], runs.map(&:id)
+    assert_equal %w[passed lost], runs.map(&:state)
+  end
+
   test "a run killed by Cancel shows as cancelled" do
     write_record "fixxer-20261112T130000Z-41", status: "error", exit_code: 143, finished_at: "2026-11-12T13:00:05Z"
 
@@ -108,6 +118,7 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
       record = { app: app, sha: "abc1234def5678", branch: "main", dry_run: false, status: status, exit_code: exit_code,
                  started_at: started_at, finished_at: finished_at, host: "legion", pid: pid,
                  log: log_path(id), steps: steps }
+      record.delete(:pid) if pid.nil?
       File.write(record_path(id), JSON.pretty_generate(record))
     end
 
