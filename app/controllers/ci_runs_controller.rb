@@ -9,6 +9,14 @@ class CiRunsController < ApplicationController
     @listing = run_reader.call(app: @app)
   end
 
+  # The dashboard's Latest CI strip: each managed app's newest run, loaded on
+  # click into a frame so the 30-second card broadcasts never touch the box.
+  def latest
+    @ci_names = ManagedApp.managed.where.not(ci_name: nil).distinct.order(:ci_name).pluck(:ci_name)
+    @listing = run_reader.call
+    @latest_runs = @listing.runs.group_by(&:app).transform_values(&:first)
+  end
+
   def show
     @listing = run_reader.find(params[:id])
     @run = @listing.runs.first

@@ -25,4 +25,19 @@ class BrowsingCiRunsTest < ApplicationSystemTestCase
     assert_selector "h1", text: "beanlink"
     assert_text "Failure: BeanTest#test_roast"
   end
+
+  test "Evan loads Latest CI on the dashboard and jumps to an app's newest run" do
+    managed_apps(:track_planner).update!(ci_name: "track-planner")
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(
+      FakeCiBox.record("track-planner-20261112T100000Z-2", app: "track-planner", status: "failed")
+    )
+
+    visit root_path
+    click_on "Load latest CI"
+
+    within("#latest_ci_track-planner") { click_on "track-planner" }
+
+    assert_selector "h1", text: "track-planner"
+    assert_current_path ci_run_path("track-planner-20261112T100000Z-2")
+  end
 end

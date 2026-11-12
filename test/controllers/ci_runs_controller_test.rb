@@ -50,6 +50,7 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
 
     get root_url
     assert_select "nav a[href=?]", ci_runs_path, count: 0
+    assert_select "turbo-frame#latest_ci", count: 0
   end
 
   test "Evan opens a finished run and sees its steps and log" do
@@ -76,6 +77,41 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", text: "beanlink"
+  end
+
+  test "Evan loads Latest CI on the dashboard and sees each app's newest run in one call to the box" do
+    managed_apps(:track_planner).update!(ci_name: "track-planner")
+    managed_apps(:contractor_link).update!(ci_name: "contractor_link")
+    ManagedApp.create!(repo_path: "/tmp/quiet", service_name: "quiet", ci_name: "quiet", status: :managed,
+      discovered_at: Time.current, last_scanned_at: Time.current)
+    box = FakeCiBox.serving(
+      record("track-planner-20261112T100000Z-2", app: "track-planner", status: "failed").merge(started_at: "2026-11-12T10:00:00Z"),
+      record("track-planner-20261112T090000Z-1", app: "track-planner", status: "passed").merge(started_at: "2026-11-12T09:00:00Z")
+    )
+    Kamander::Kamal.ssh_client = box
+
+    get root_url
+    assert_select "turbo-frame#latest_ci a[href=?]", latest_ci_runs_path, text: "Load latest CI"
+
+    get latest_ci_runs_url
+
+    assert_response :success
+    assert_select "turbo-frame#latest_ci" do
+      assert_select "#latest_ci_track-planner a[href=?]", ci_run_path("track-planner-20261112T100000Z-2"), text: /failed/i
+      assert_select "#latest_ci_quiet", text: /no recent runs/
+      assert_select "#latest_ci_contractor_link", count: 0
+    end
+    assert_equal 1, box.calls.size
+  end
+
+  test "Latest CI with the box unreachable shows the error inside the strip" do
+    managed_apps(:track_planner).update!(ci_name: "track-planner")
+    stub_box :unreachable
+
+    get latest_ci_runs_url
+
+    assert_response :success
+    assert_select "turbo-frame#latest_ci [role=alert]", text: /CI box unreachable.*connection unreachable/m
   end
 
   test "a run id the box doesn't have is a 404" do

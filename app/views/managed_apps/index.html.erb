@@ -12,6 +12,15 @@
     </div>
   </header>
 
+  <% if Setting.current.ci_host %>
+    <section class="mb-6">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Latest CI</h2>
+      <%= turbo_frame_tag :latest_ci, class: "block aria-busy:opacity-50 transition-opacity" do %>
+        <%= link_to "Load latest CI", latest_ci_runs_path, class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+      <% end %>
+    </section>
+  <% end %>
+
   <% if @managed_apps.any? %>
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <%= render partial: "managed_apps/app_card", collection: @managed_apps, as: :managed_app %>
