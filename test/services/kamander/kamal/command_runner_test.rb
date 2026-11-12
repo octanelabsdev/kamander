@@ -50,6 +50,28 @@ class Kamander::Kamal::CommandRunnerTest < ActiveSupport::TestCase
     assert_equal [ "nil" ], lines
   end
 
+  test "a spawned command runs in the background with its output in a file" do
+    Tempfile.create("out") do |out|
+      background = runner.spawn(command: [ "sh", "-c", "echo started; echo oops >&2; exit 3" ], chdir: Dir.pwd, out: out.path)
+
+      sleep 0.05 until background.finished?
+      assert_not background.success?
+      assert_equal "started\noops\n", File.read(out.path)
+    end
+  end
+
+  test "stopping a spawned command also stops the children it started" do
+    Tempfile.create("out") do |out|
+      background = runner.spawn(command: [ "sh", "-c", "sleep 30 & echo $!; wait" ], chdir: Dir.pwd, out: out.path)
+      sleep 0.05 until File.size(out.path).positive?
+      child = Integer(File.read(out.path))
+
+      background.stop
+
+      assert_raises(Errno::ESRCH) { 20.times { Process.kill(0, child); sleep 0.05 } }
+    end
+  end
+
   private
 
     def runner

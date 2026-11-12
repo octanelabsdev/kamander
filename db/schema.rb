@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_055618) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_220000) do
   create_table "app_destinations", force: :cascade do |t|
     t.json "accessory_names", default: [], null: false
     t.string "config_file", null: false
@@ -26,6 +26,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_055618) do
     t.index ["managed_app_id", "name"], name: "index_app_destinations_on_managed_app_id_and_name"
     t.index ["managed_app_id"], name: "index_app_destinations_on_managed_app_id"
   end
+
+create_table "ci_launches", force: :cascade do |t|
+  t.datetime "created_at", null: false
+  t.string "branch"
+  t.boolean "dry_run", default: true, null: false
+  t.integer "managed_app_id", null: false
+  t.text "output", default: "", null: false
+  t.string "run_id"
+  t.string "sha", null: false
+  t.integer "status", default: 0, null: false
+  t.datetime "updated_at", null: false
+  t.index ["managed_app_id"], name: "index_ci_launches_on_managed_app_id"
+  t.index ["managed_app_id"], name: "index_ci_launches_one_queued_per_app", unique: true, where: "status = 0"
+end
 
   create_table "destination_statuses", force: :cascade do |t|
     t.integer "app_destination_id", null: false
@@ -84,6 +98,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_055618) do
   end
 
   add_foreign_key "app_destinations", "managed_apps"
+  add_foreign_key "ci_launches", "managed_apps"
   add_foreign_key "destination_statuses", "app_destinations"
   add_foreign_key "operations", "app_destinations"
   add_foreign_key "operations", "managed_apps"

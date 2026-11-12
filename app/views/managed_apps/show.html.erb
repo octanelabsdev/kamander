@@ -33,6 +33,10 @@
     </section>
 
     <aside class="flex flex-col gap-6">
+      <% if @ci_panel %>
+        <%= render "managed_apps/ci_panel", managed_app: @managed_app, checkout: @checkout %>
+      <% end %>
+
       <section>
         <h2 class="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-500">Resource usage</h2>
         <p class="mb-2 text-xs text-neutral-600">CPU and memory for containers currently running and reachable over SSH.</p>

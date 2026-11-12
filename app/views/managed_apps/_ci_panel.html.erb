@@ -1,0 +1,27 @@
+<%# locals: managed_app, checkout %>
+<section id="ci_panel">
+  <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">CI</h2>
+  <div class="rounded-md border border-neutral-800 px-3 py-3 text-sm">
+    <% if checkout %>
+      <p class="mb-3 text-neutral-400">
+        <span class="text-neutral-200"><%= managed_app.ci_name %></span> on
+        <span class="text-neutral-200"><%= checkout.branch %></span>
+        <span class="font-mono text-xs text-neutral-500"><%= checkout.short_sha %></span>
+      </p>
+      <div class="flex flex-wrap items-center gap-2">
+        <%= button_to "Dry run", managed_app_ci_launches_path(managed_app),
+              params: { sha: checkout.sha, branch: checkout.branch, dry_run: "1" },
+              title: "Every bin/ci step except the signoff",
+              class: "rounded-md border border-neutral-700 px-3 py-1.5 text-neutral-300 hover:bg-neutral-800" %>
+        <%= button_to "Run CI", managed_app_ci_launches_path(managed_app),
+              params: { sha: checkout.sha, branch: checkout.branch, dry_run: "0" },
+              data: { turbo_confirm: "Run CI on #{managed_app.ci_name} at #{checkout.branch} #{checkout.short_sha}? " \
+                                     "A green run stamps gh signoff on that commit, which gates merge and deploy." },
+              class: "rounded-md border border-emerald-800 px-3 py-1.5 text-emerald-300 hover:bg-emerald-950/40" %>
+        <%= link_to "All runs →", ci_runs_path(app: managed_app.ci_name), class: "ml-auto text-xs text-neutral-500 hover:text-neutral-300" %>
+      </div>
+    <% else %>
+      <p class="text-neutral-500">Can't read HEAD in <%= managed_app.repo_path %>.</p>
+    <% end %>
+  </div>
+</section>

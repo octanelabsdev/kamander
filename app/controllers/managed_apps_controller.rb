@@ -7,6 +7,8 @@ class ManagedAppsController < ApplicationController
 
   def show
     @managed_app = ManagedApp.includes(app_destinations: :destination_status).find(params[:id])
+    @ci_panel = @managed_app.managed? && @managed_app.ci_name.present? && Setting.current.ci_host.present?
+    @checkout = Kamander::Ci::Checkout.read(@managed_app.repo_path) if @ci_panel
   end
 
   def confirm
