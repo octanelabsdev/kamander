@@ -17,7 +17,7 @@ class Kamander::Kamal::SshClientTest < ActiveSupport::TestCase
   end
 
   test "builds the expected ssh argv" do
-    argv = Kamander::Kamal::SshClient.new.send(:build_argv, user: "deploy", host: "203.0.113.10", command: "docker ps --all")
+    argv = Kamander::Kamal::SshClient.argv(user: "deploy", host: "203.0.113.10", command: "docker ps --all")
 
     assert_equal [
       "ssh",

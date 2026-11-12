@@ -15,14 +15,14 @@ module Kamander
       DEFAULT_TIMEOUT = 10
 
       def capture(host:, user:, command:, timeout: DEFAULT_TIMEOUT)
-        run(build_argv(user: user, host: host, command: command), timeout: timeout)
+        run(self.class.argv(user: user, host: host, command: command), timeout: timeout)
       rescue StandardError => e
         Result.new(stdout: "", success: false, error: e.message)
       end
 
-      private
-
-      def build_argv(user:, host:, command:)
+      # Public so long-running ssh commands streamed through CommandRunner
+      # (Ci::LogFollower) connect with the same options as #capture.
+      def self.argv(user:, host:, command:)
         [
           "ssh",
           "-o", "BatchMode=yes",
@@ -32,6 +32,8 @@ module Kamander
           command
         ]
       end
+
+      private
 
       # pgroup: true puts ssh in its own process group so a timeout can kill
       # it (and anything it spawned, e.g. a ProxyCommand) in one signal —
