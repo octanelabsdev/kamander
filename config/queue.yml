@@ -14,6 +14,11 @@ default: &default
       threads: 2
       processes: 1
       polling_interval: 0.1
+    # One thread per CI run being watched, held for the whole run.
+    - queues: [ ci ]
+      threads: 3
+      processes: 1
+      polling_interval: 0.1
 
 development:
   <<: *default

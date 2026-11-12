@@ -2,12 +2,13 @@ require_relative "fake_ssh_client"
 
 # A FakeSshClient that answers like the CI box: RunReader's listing script
 # gets the served records whose file names match its glob, as `ls` would on
-# the box, and `tail` of a log gets log_output.
+# the box, and `tail` of a log gets log_output. Ids in live: are reported as
+# still running, the way the box's /proc check reports them.
 class FakeCiBox < FakeSshClient
   attr_accessor :log_output
 
-  def self.serving(*records)
-    new(records: records)
+  def self.serving(*records, live: [])
+    new(records: records, live: live)
   end
 
   def self.record(id, app: "fixxer", status: "passed", dry_run: false, steps: [])
@@ -16,9 +17,10 @@ class FakeCiBox < FakeSshClient
       host: "legion", pid: 1, log: "/data/ci/logs/#{id}.log", steps: steps }
   end
 
-  def initialize(records: nil, responses: {})
+  def initialize(records: nil, live: [], responses: {})
     super(responses: responses)
     @records = records
+    @live = live
   end
 
   def capture(host:, user:, command:, timeout: 10)
@@ -29,6 +31,7 @@ class FakeCiBox < FakeSshClient
 
     glob = command[%r{ls -t \S*/(\S+) }, 1]
     matching = @records.select { |record| File.fnmatch(glob, "#{record[:id]}.json") }
-    result.with(stdout: matching.map { |record| record.to_json + "\n" }.join + "---\n")
+    live = matching.map { |record| record[:id] } & @live
+    result.with(stdout: (matching.map(&:to_json) + [ "---" ] + live).join("\n") + "\n")
   end
 end
