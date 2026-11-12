@@ -11,6 +11,6 @@ class SettingsController < ApplicationController
   private
 
     def setting_params
-      params.require(:setting).permit(:scan_root, :default_ssh_user)
+      params.require(:setting).permit(:scan_root, :default_ssh_user, :ci_host, :ci_user)
     end
 end

@@ -27,11 +27,24 @@ module Kamander
         ScannedApp.new(
           repo_path: repo_path,
           service_name: service_name,
+          ci_name: ci_name(repo_path),
           destinations: build_destinations(base_path, base_config),
           error: service_name.present? ? nil : "missing service name"
         )
       rescue ParseError => e
-        ScannedApp.new(repo_path: repo_path, service_name: nil, destinations: [], error: e.message)
+        ScannedApp.new(repo_path: repo_path, service_name: nil, ci_name: nil, destinations: [], error: e.message)
+      end
+
+      # The CI box keys runs by the GitHub repo name, so a worktree named
+      # fixxer-docs is still "fixxer". Same rule as ci-box's remote-ci. Without
+      # its own .git, git would walk up and report an enclosing repo's origin.
+      def ci_name(repo_path)
+        return unless File.exist?(File.join(repo_path, ".git"))
+
+        origin, status = Open3.capture2("git", "-C", repo_path, "remote", "get-url", "origin", err: File::NULL)
+        return unless status.success?
+
+        origin.strip.split(%r{[/:]}).last&.delete_suffix(".git").presence
       end
 
       def build_destinations(base_path, base_config)

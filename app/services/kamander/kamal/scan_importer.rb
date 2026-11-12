@@ -25,6 +25,7 @@ module Kamander
         managed_app = ManagedApp.find_or_initialize_by(repo_path: scanned_app.repo_path)
         managed_app.discovered_at = now if managed_app.new_record?
         managed_app.service_name = scanned_app.service_name
+        managed_app.ci_name = scanned_app.ci_name
         managed_app.proxy_host = base_proxy_host(scanned_app)
         managed_app.last_scanned_at = now
         managed_app.save!
