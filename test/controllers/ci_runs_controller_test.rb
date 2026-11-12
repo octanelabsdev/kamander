@@ -66,6 +66,18 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "pre", text: /1 failure/
   end
 
+  test "with several runs on the box, Evan opens the one he clicked" do
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(
+      record("beanlink-20261112T100000Z-12", app: "beanlink"),
+      record("fixxer-20261112T090000Z-11")
+    )
+
+    get ci_run_url("beanlink-20261112T100000Z-12")
+
+    assert_response :success
+    assert_select "h1", text: "beanlink"
+  end
+
   test "a run id the box doesn't have is a 404" do
     stub_box ci_records
 
