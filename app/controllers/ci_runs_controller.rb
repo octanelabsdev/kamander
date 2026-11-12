@@ -28,6 +28,20 @@ class CiRunsController < ApplicationController
     CiFollowJob.perform_later(@run.id) if @run.live?
   end
 
+  # One attempt, no retries: a cancel that fails is reported, never repeated blind.
+  def cancel
+    run = run_reader.find(params[:id]).runs.first
+    return redirect_to ci_run_path(params[:id]), alert: "That run isn't running, so there is nothing to cancel." unless run&.live?
+
+    setting = Setting.current
+    result = Kamander::Ci::Canceller.new(host: setting.ci_host, user: setting.ci_user).call(run)
+    if result.success?
+      redirect_to ci_run_path(run.id), notice: "Cancel sent. ci-box records the run as cancelled once its steps stop."
+    else
+      redirect_to ci_run_path(run.id), alert: result.message
+    end
+  end
+
   private
 
     def require_ci_host

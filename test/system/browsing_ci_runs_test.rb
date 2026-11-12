@@ -40,4 +40,16 @@ class BrowsingCiRunsTest < ApplicationSystemTestCase
     assert_selector "h1", text: "track-planner"
     assert_current_path ci_run_path("track-planner-20261112T100000Z-2")
   end
+
+  test "Evan cancels a live run after confirming which run it is" do
+    id = "fixxer-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(FakeCiBox.record(id, status: "running").merge(pid: 4242), live: [ id ],
+      responses: { "legion" => "#{Kamander::Ci::Canceller::SENT}\n" })
+
+    visit ci_run_path(id)
+    accept_confirm(/Cancel fixxer main abc1234/) { click_on "Cancel run" }
+
+    assert_text "Cancel sent"
+    assert_current_path ci_run_path(id)
+  end
 end

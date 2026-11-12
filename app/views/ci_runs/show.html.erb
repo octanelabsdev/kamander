@@ -26,6 +26,11 @@
         <% elsif @run.signed_off? %>
           <span class="text-xs text-emerald-400" data-signed-off title="This run stamped gh signoff">✓ signed</span>
         <% end %>
+        <% if @run.live? %>
+          <%= button_to "Cancel run", cancel_ci_run_path(@run.id), form_class: "ml-auto",
+                data: { turbo_confirm: "Cancel #{@run.app} #{@run.branch} #{@run.short_sha}? Its steps stop now and the run is recorded as cancelled." },
+                class: "rounded-md border border-red-900 px-3 py-1.5 text-sm text-red-400 hover:bg-red-950/40" %>
+        <% end %>
       </div>
       <p class="mt-1 flex flex-wrap items-baseline gap-x-3 text-sm text-neutral-400">
         <span><%= @run.branch %></span>

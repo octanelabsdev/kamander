@@ -3,13 +3,14 @@ require_relative "fake_ssh_client"
 # A FakeSshClient that answers like the CI box: RunReader's listing script
 # gets the served records whose file names match its glob, as `ls` would on
 # the box, and `tail` of a log gets log_output. Ids in live: are reported as
-# still running, the way the box's /proc check reports them.
+# still running, the way the box's /proc check reports them. Any other command
+# (a cancel) gets its canned response by host, as in FakeSshClient.
 class FakeCiBox < FakeSshClient
   attr_accessor :log_output
   attr_reader :records
 
-  def self.serving(*records, live: [])
-    new(records: records, live: live)
+  def self.serving(*records, live: [], responses: {})
+    new(records: records, live: live, responses: responses)
   end
 
   def self.record(id, app: "fixxer", status: "passed", dry_run: false, steps: [], sha: "abc1234def5678")
@@ -28,7 +29,7 @@ class FakeCiBox < FakeSshClient
     return Kamander::Kamal::SshClient::Result.new(stdout: log_output.to_s, success: true, error: nil) if command.start_with?("tail ")
 
     result = super
-    return result unless @records
+    return result unless @records && command.include?("ls -t ")
 
     glob = command[%r{ls -t \S*/(\S+) }, 1]
     matching = @records.select { |record| File.fnmatch(glob, "#{record[:id]}.json") }

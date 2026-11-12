@@ -153,6 +153,60 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-cable-stream-source", count: 0
   end
 
+  test "a live run offers Cancel, with a confirm naming the run" do
+    id = "fixxer-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "running"), live: [ id ])
+
+    get ci_run_url(id)
+
+    assert_select "form[action=?] button[data-turbo-confirm*=?]", cancel_ci_run_path(id), "Cancel fixxer main abc1234", text: "Cancel run"
+  end
+
+  test "a finished run has no Cancel" do
+    id = "fixxer-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "passed"))
+
+    get ci_run_url(id)
+
+    assert_select "form[action=?]", cancel_ci_run_path(id), count: 0
+  end
+
+  test "Evan cancels a live run: one kill for that pid, then back on the run with a notice" do
+    id = "fixxer-20261112T090000Z-11"
+    box = Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "running").merge(pid: 4242), live: [ id ],
+      responses: { "legion" => "#{Kamander::Ci::Canceller::SENT}\n" })
+
+    post cancel_ci_run_url(id)
+
+    assert_redirected_to ci_run_path(id)
+    assert_match(/Cancel sent/, flash[:notice])
+    kills = box.calls.select { |call| call.command.include?("kill -TERM 4242") }
+    assert_equal 1, kills.size
+    assert_equal "ci", kills.sole.user
+  end
+
+  test "cancelling a run that already finished sends nothing to the box" do
+    id = "fixxer-20261112T090000Z-11"
+    box = Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "passed"))
+
+    post cancel_ci_run_url(id)
+
+    assert_redirected_to ci_run_path(id)
+    assert_match(/nothing to cancel/, flash[:alert])
+    assert_empty box.calls.select { |call| call.command.include?("kill") }
+  end
+
+  test "a refused cancel shows the box's reason and is not retried" do
+    id = "fixxer-20261112T090000Z-11"
+    box = Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "running").merge(pid: 4242), live: [ id ],
+      responses: { "legion" => "kamander: pid 4242 is not this run any more\n" })
+
+    post cancel_ci_run_url(id)
+
+    assert_equal "kamander: pid 4242 is not this run any more", flash[:alert]
+    assert_equal 1, box.calls.count { |call| call.command.include?("kill") }
+  end
+
   test "a run id the box doesn't have is a 404" do
     stub_box ci_records
 

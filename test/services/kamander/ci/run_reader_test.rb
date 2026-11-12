@@ -153,13 +153,4 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
 
     def record_path(id) = File.join(@runs_dir, "#{id}.json")
     def log_path(id) = "/data/ci/logs/#{id}.log"
-
-    # Runs the reader's real script through a local shell, so the jq and
-    # /proc logic that will run on the box is exercised, not stubbed.
-    class LocalShell
-      def capture(host:, user:, command:, timeout: 10)
-        stdout, stderr, status = Open3.capture3("sh", "-c", command)
-        Kamander::Kamal::SshClient::Result.new(stdout: stdout, success: status.success?, error: status.success? ? nil : stderr)
-      end
-    end
 end

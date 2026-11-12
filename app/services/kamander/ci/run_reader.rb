@@ -16,6 +16,8 @@ module Kamander
       # Repo names and record ids share this alphabet; nothing else reaches the shell.
       SAFE_NAME = /\A[A-Za-z0-9._-]+\z/
       ANSI_ESCAPE = /\e\[[0-9;]*[A-Za-z]/
+      # A sh case pattern for a pid's cmdline that is running the record at %s.
+      RUN_CMDLINE = '"bash -l -c source "*" %s "'
 
       Listing = Data.define(:runs, :error) do
         def success?
@@ -81,7 +83,7 @@ module Kamander
           jq -r 'select(.status == "queued" or .status == "running") | "\\(.pid) \\(input_filename)"' $files |
           while read -r pid file; do
             cmd=$(tr '\\0' ' ' < #{@proc_root.shellescape}/"$pid"/cmdline 2>/dev/null) || continue
-            case "$cmd" in "bash -l -c source "*" $file ") basename "$file" .json ;; esac
+            case "$cmd" in #{format(RUN_CMDLINE, "$file")}) basename "$file" .json ;; esac
           done
         SH
       end
