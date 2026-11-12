@@ -22,7 +22,10 @@ class CiRunsController < ApplicationController
     @run = @listing.runs.first
     return head :not_found if @listing.success? && @run.nil?
 
-    @log = run_reader.log(@run.id) if @run
+    return unless @run
+
+    @log = run_reader.log(@run.id)
+    CiFollowJob.perform_later(@run.id) if @run.live?
   end
 
   private

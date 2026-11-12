@@ -1,5 +1,14 @@
 <% content_for :title, @run ? "CI · #{@run.app}" : "CI run" %>
 
+<% if @run&.live? %>
+  <%# The follower ends with a refresh: morph it in place so the log keeps its scroll. %>
+  <% content_for :head do %>
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+  <% end %>
+  <%= turbo_stream_from Kamander::Ci::LogFollower.stream_name(@run.id) %>
+<% end %>
+
 <section class="w-full">
   <%= link_to "← CI", ci_runs_path, class: "text-sm text-neutral-400 hover:text-neutral-200" %>
 
@@ -30,8 +39,8 @@
     <% end %>
 
     <h2 class="mb-2 text-sm font-medium text-neutral-400">Log <span class="font-normal text-neutral-600">(last <%= Kamander::Ci::RunReader::LOG_LINES %> lines)</span></h2>
-    <% if @log %>
-      <pre class="max-h-[70vh] overflow-auto rounded-md border border-neutral-800 bg-black p-3 font-mono text-xs leading-relaxed text-neutral-300"><%= @log %></pre>
+    <% if @log || @run.live? %>
+      <pre id="ci_run_log" class="max-h-[70vh] overflow-auto rounded-md border border-neutral-800 bg-black p-3 font-mono text-xs leading-relaxed text-neutral-300"><%= @log %></pre>
     <% else %>
       <p class="text-sm italic text-neutral-500">Log unavailable.</p>
     <% end %>

@@ -114,6 +114,27 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#latest_ci [role=alert]", text: /CI box unreachable.*connection unreachable/m
   end
 
+  test "opening a live run starts following its log and subscribes the page to the stream" do
+    id = "fixxer-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "running"), live: [ id ])
+    Kamander::Kamal.ssh_client.log_output = "Running 162 tests\n"
+
+    assert_enqueued_with(job: CiFollowJob, args: [ id ]) { get ci_run_url(id) }
+
+    assert_response :success
+    assert_select "turbo-cable-stream-source[signed-stream-name]", count: 1
+    assert_select "pre#ci_run_log", text: /Running 162 tests/
+  end
+
+  test "opening a finished run neither follows it nor subscribes" do
+    id = "fixxer-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "passed"))
+
+    assert_no_enqueued_jobs(only: CiFollowJob) { get ci_run_url(id) }
+
+    assert_select "turbo-cable-stream-source", count: 0
+  end
+
   test "a run id the box doesn't have is a 404" do
     stub_box ci_records
 
