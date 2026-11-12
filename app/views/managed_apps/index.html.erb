@@ -22,7 +22,7 @@
   <% end %>
 
   <% if @managed_apps.any? %>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       <%= render partial: "managed_apps/app_card", collection: @managed_apps, as: :managed_app %>
     </div>
   <% else %>

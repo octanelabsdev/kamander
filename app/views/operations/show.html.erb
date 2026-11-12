@@ -10,7 +10,7 @@
 
 <%= turbo_stream_from @operation %>
 
-<section class="w-full max-w-3xl">
+<section class="w-full">
   <%= link_to "← #{@operation.managed_app.display_label}", managed_app_path(@operation.managed_app),
         class: "text-sm text-neutral-500 hover:text-neutral-300" %>
 

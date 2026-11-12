@@ -1,7 +1,7 @@
 <%# locals: container (string-keyed hash: state/status_text/version), label (what this row represents — role, accessory name, or host) %>
 <div class="flex items-center gap-2 text-sm">
   <span class="h-2 w-2 shrink-0 rounded-full <%= container_state_color(container["state"]) %>"></span>
-  <span class="w-20 shrink-0 text-neutral-400"><%= label %></span>
-  <span class="flex-1 text-neutral-300"><%= container["status_text"].presence || container["state"] %></span>
+  <span class="w-56 shrink-0 truncate text-neutral-400" title="<%= label %>"><%= label %></span>
+  <span class="min-w-0 flex-1 truncate text-neutral-300"><%= container["status_text"].presence || container["state"] %></span>
   <%= short_sha(container["version"]) %>
 </div>
