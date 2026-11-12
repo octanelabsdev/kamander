@@ -58,10 +58,12 @@ the target repo's state, not a Kamander bug. Fix with `bundle install` in that r
 bin/setup --skip-server
 ```
 
-This installs gems, runs `db:prepare`, and clears logs/tmp. `db:prepare` creates **two**
-SQLite databases: `storage/development.sqlite3` and `storage/development_queue.sqlite3`.
+This installs gems, runs `db:prepare`, and clears logs/tmp. `db:prepare` creates **three**
+SQLite databases: `storage/development.sqlite3`, `storage/development_queue.sqlite3` and
+`storage/development_cable.sqlite3`.
 The queue lives on its own file on purpose — SQLite is a single-writer database and the
-pollers will contend with the app otherwise.
+pollers will contend with the app otherwise. Action Cable uses solid_cable, not async,
+because jobs run in Solid Queue's own process and their broadcasts must reach the web one.
 
 Then, in the UI:
 
