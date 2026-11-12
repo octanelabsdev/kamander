@@ -63,6 +63,11 @@
         <% else %>
           <p class="text-sm italic text-neutral-500"><%= @run.status == "queued" ? "Waiting for the box." : "No steps recorded." %></p>
         <% end %>
+
+        <% unless @run.unfinished? %>
+          <h2 class="mt-6 mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Slowest tests</h2>
+          <%= render "ci_runs/slowest_tests", run: @run %>
+        <% end %>
       </section>
 
       <section class="min-w-0">

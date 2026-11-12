@@ -4,7 +4,7 @@ module Kamander
     # whether the record's pid is still running this exact record; ci-box
     # leaves a rebooted or kill -9'd run stuck at queued/running forever.
     Run = Data.define(:id, :app, :sha, :branch, :dry_run, :status, :exit_code, :started_at, :finished_at,
-                      :host, :pid, :log, :steps, :alive) do
+                      :host, :pid, :log, :steps, :slowest, :alive) do
       def self.from_record(record, alive:)
         new(
           id: record["id"],
@@ -19,9 +19,17 @@ module Kamander
           host: record["host"],
           pid: record["pid"],
           log: record["log"],
-          steps: Array(record["steps"]).map { |step| Step.new(name: step["name"], result: step["result"], took: step["took"]) },
+          steps: Array(record["steps"]).map { |step| Step.new(name: step["name"], result: step["result"], took: step["took"], seconds: step["seconds"]) },
+          slowest: record.key?("slowest") ? slow_tests(record["slowest"]) : nil,
           alive: alive
         )
+      end
+
+      # Records before ci-box #4 have no "slowest"; nil keeps that unknown, apart from {} (no --profile).
+      def self.slow_tests(by_step)
+        by_step.to_h.flat_map do |step, tests|
+          tests.map { |test| SlowTest.new(step: step, test: test["test"], seconds: test["seconds"], file: test["file"], line: test["line"]) }
+        end.sort_by { |test| -test.seconds.to_f }
       end
 
       def self.parse_time(value)

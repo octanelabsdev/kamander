@@ -33,6 +33,35 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
     assert_equal "abc1234", failed.short_sha
   end
 
+  test "Evan sees each step's seconds and the slowest tests, slowest first across steps" do
+    write_record "fixxer-20261112T130000Z-41", status: "passed", exit_code: 0,
+      steps: [ { name: "Tests: Rails", result: "passed", took: "40.1s", seconds: 40.1 },
+               { name: "Tests: System", result: "passed", took: "15m43.2s", seconds: 943.2 } ],
+      slowest: {
+        "Tests: Rails" => [ { test: "CardTest#test_price", seconds: 1.5, file: "test/models/card_test.rb", line: 12 } ],
+        "Tests: System" => [ { test: "CheckoutTest#test_pay", seconds: 31.25, file: "test/system/checkout_test.rb", line: 8 } ]
+      }
+
+    run = read.runs.sole
+
+    assert_equal [ 40.1, 943.2 ], run.steps.map(&:seconds)
+    assert_equal %w[CheckoutTest#test_pay CardTest#test_price], run.slowest.map(&:test)
+    assert_equal [ "Tests: System", 31.25, "test/system/checkout_test.rb", 8 ], run.slowest.first.deconstruct.values_at(0, 2, 3, 4)
+  end
+
+  test "records from before ci-box recorded timing leave it unknown, not zero" do
+    write_record "fixxer-20261111T130000Z-40", status: "passed", exit_code: 0,
+      steps: [ { name: "Tests: Rails", result: "passed", took: "40.1s" } ]
+    write_record "fixxer-20261112T130000Z-41", status: "passed", exit_code: 0, started_at: "2026-11-12T09:00:00Z",
+      steps: [ { name: "Tests: Rails", result: "passed", took: "40.1s", seconds: 40.1 } ], slowest: {}
+
+    profiled_none, before = read.runs
+
+    assert_nil before.steps.sole.seconds
+    assert_nil before.slowest, "a record without the field is unknown"
+    assert_equal [], profiled_none.slowest, "{} means the app's CI doesn't profile"
+  end
+
   test "a running record is live only while its pid runs this exact record" do
     write_record "fixxer-20261112T110000Z-21", status: "running", pid: 4101
     write_proc 4101, RUN_CMDLINE + [ log_path("fixxer-20261112T110000Z-21"), record_path("fixxer-20261112T110000Z-21") ]
@@ -138,10 +167,10 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
     end
 
     def write_record(id, app: "fixxer", status: "passed", pid: 999, exit_code: nil, steps: [],
-      started_at: "2026-11-12T08:00:00Z", finished_at: nil)
+      started_at: "2026-11-12T08:00:00Z", finished_at: nil, **extra)
       record = { app: app, sha: "abc1234def5678", branch: "main", dry_run: false, status: status, exit_code: exit_code,
                  started_at: started_at, finished_at: finished_at, host: "legion", pid: pid,
-                 log: log_path(id), steps: steps }
+                 log: log_path(id), steps: steps, **extra }
       record.delete(:pid) if pid.nil?
       File.write(record_path(id), JSON.pretty_generate(record))
     end

@@ -1,0 +1,18 @@
+<%# locals: run %>
+<% if run.slowest.nil? %>
+  <p class="text-sm italic text-neutral-500">Not recorded: this run predates ci-box's test timing.</p>
+<% elsif run.slowest.empty? %>
+  <p class="text-sm italic text-neutral-500">None recorded: this app's bin/ci doesn't run its tests with --profile.</p>
+<% else %>
+  <ol id="ci_slowest_tests" class="divide-y divide-neutral-900 rounded-lg border border-neutral-800 text-sm">
+    <% run.slowest.first(10).each do |test| %>
+      <li class="px-3 py-1.5" data-slow-test>
+        <div class="flex items-baseline gap-2">
+          <span class="min-w-0 flex-1 truncate text-neutral-300" title="<%= test.test %>"><%= test.description %></span>
+          <span class="shrink-0 tabular-nums text-xs text-amber-400"><%= number_with_precision(test.seconds, precision: 2) %>s</span>
+        </div>
+        <div class="truncate font-mono text-xs text-neutral-500" title="<%= test.step %> · <%= test.file %>:<%= test.line %>"><%= File.basename(test.file.to_s) %>:<%= test.line %></div>
+      </li>
+    <% end %>
+  </ol>
+<% end %>

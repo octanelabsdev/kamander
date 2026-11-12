@@ -85,6 +85,31 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "pre", text: /1 failure/
   end
 
+  test "Evan opens a finished run and sees its slowest tests, slowest first, with file and line" do
+    id = "fixxer-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id).merge(slowest: {
+      "Tests: Rails" => [ { test: "CardTest#test_price", seconds: 1.5, file: "test/models/card_test.rb", line: 12 } ],
+      "Tests: System" => [ { test: "CheckoutTest#test_pay", seconds: 31.25, file: "test/system/checkout_test.rb", line: 8 } ]
+    }))
+
+    get ci_run_url(id)
+
+    assert_select "#ci_slowest_tests [data-slow-test]", count: 2 do |rows|
+      assert_match(/pay.*31\.25s.*checkout_test\.rb:8/m, rows.first.text)
+      assert_select rows.first, "[title=?]", "CheckoutTest#test_pay"
+    end
+  end
+
+  test "an old run without timing says it wasn't recorded instead of showing nothing" do
+    id = "fixxer-20261112T090000Z-11"
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id))
+
+    get ci_run_url(id)
+
+    assert_select "#ci_slowest_tests", count: 0
+    assert_select "p", text: /predates ci-box's test timing/
+  end
+
   test "with several runs on the box, Evan opens the one he clicked" do
     Kamander::Kamal.ssh_client = FakeCiBox.serving(
       record("beanlink-20261112T100000Z-12", app: "beanlink"),
