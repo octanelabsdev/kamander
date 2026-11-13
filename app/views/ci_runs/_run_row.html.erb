@@ -1,0 +1,29 @@
+<%# locals: run %>
+<div id="ci_run_<%= run.id %>"
+     class="relative grid grid-cols-[6.5rem_11rem_minmax(0,1fr)_minmax(0,18rem)_5.5rem_5rem_5rem] items-center gap-4 border-l-2 px-4 py-2.5 text-sm hover:bg-neutral-900 <%= run.state.in?(%w[failed error lost]) ? "border-red-600" : "border-transparent" %>">
+  <div><%= ci_state_pill(run) %></div>
+
+  <%= link_to run.app, ci_run_path(run.id),
+        class: "truncate font-medium text-neutral-100 after:absolute after:inset-0", title: run.app %>
+
+  <div class="flex min-w-0 items-baseline gap-2">
+    <span class="truncate text-neutral-300" title="<%= run.branch %>"><%= run.branch %></span>
+    <span class="shrink-0 font-mono text-xs text-neutral-500"><%= run.short_sha %></span>
+  </div>
+
+  <div class="flex min-w-0 flex-col gap-1 text-xs">
+    <% if run.steps.any? %><%= ci_step_bar(run) %><% end %>
+    <%= ci_step_summary(run) %>
+  </div>
+
+  <div class="text-xs">
+    <% if run.dry_run %>
+      <span class="rounded bg-neutral-800 px-1.5 py-0.5 text-neutral-400">dry run</span>
+    <% elsif run.signed_off? %>
+      <span class="text-emerald-400" data-signed-off title="This run stamped gh signoff">✓ signed</span>
+    <% end %>
+  </div>
+
+  <div class="text-right tabular-nums text-neutral-400"><%= ci_duration(run.duration) %></div>
+  <div class="text-right text-neutral-500"><%= ci_ago(run.started_at) %></div>
+</div>

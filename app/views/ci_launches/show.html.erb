@@ -1,0 +1,32 @@
+<% content_for :title, "Starting CI · #{@launch.managed_app.display_label}" %>
+<% content_for :head do %>
+  <meta name="turbo-refresh-method" content="morph">
+<% end %>
+
+<%= turbo_stream_from @launch %>
+
+<section class="w-full max-w-4xl">
+  <%= link_to "← #{@launch.managed_app.display_label}", managed_app_path(@launch.managed_app),
+        class: "text-sm text-neutral-500 hover:text-neutral-300" %>
+
+  <header class="mt-4 mb-6">
+    <h1 class="text-xl font-semibold text-neutral-100">
+      <%= @launch.dry_run ? "Dry run" : "CI run" %> &middot; <%= @launch.managed_app.ci_name %>
+    </h1>
+    <p class="text-sm text-neutral-500">
+      <%= @launch.branch %> <span class="font-mono"><%= @launch.short_sha %></span>
+      <%= "· stamps gh signoff when green" unless @launch.dry_run %>
+    </p>
+  </header>
+
+  <% if @launch.queued? %>
+    <p id="ci_launch_status" class="text-sm text-sky-400">Starting remote-ci and waiting for the box to record the run…</p>
+    <div data-controller="op-refresher" class="hidden"></div>
+  <% else %>
+    <p id="ci_launch_status" role="alert" class="text-sm text-red-400">CI did not start.</p>
+  <% end %>
+
+  <% if @launch.output.present? %>
+    <pre class="mt-4 whitespace-pre-wrap wrap-anywhere rounded-lg border border-neutral-800 bg-neutral-950 p-4 font-mono text-sm text-neutral-300"><%= @launch.output %></pre>
+  <% end %>
+</section>

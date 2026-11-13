@@ -6,11 +6,13 @@ class ManagedApp < ApplicationRecord
   has_many :app_destinations, dependent: :destroy
   has_many :destination_statuses, through: :app_destinations
   has_many :operations, dependent: :destroy
+  has_many :ci_launches, dependent: :destroy
 
   validates :repo_path, presence: true, uniqueness: true
   validates :service_name, presence: true
 
   scope :ordered, -> { order(:position, :service_name) }
+  scope :with_ci, -> { managed.where.not(ci_name: nil) }
 
   def display_label
     display_name.presence || service_name

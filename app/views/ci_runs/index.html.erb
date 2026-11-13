@@ -1,0 +1,50 @@
+<% content_for :title, "CI" %>
+
+<section class="w-full">
+  <header class="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <h1 class="text-xl font-semibold text-neutral-100">CI</h1>
+    <nav aria-label="Filter by app" class="flex flex-wrap gap-1 text-sm">
+      <% ([ [ "All apps", nil ] ] + @apps.map { |name| [ name, name ] }).each do |label, app| %>
+        <%= link_to label, ci_runs_path(app: app), aria: { current: ("page" if @app == app) },
+              class: "rounded-md px-3 py-1 #{@app == app ? "bg-neutral-800 text-neutral-100" : "text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"}" %>
+      <% end %>
+    </nav>
+  </header>
+
+  <section class="mb-6">
+    <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Box health</h2>
+    <%= turbo_frame_tag :box_health, class: "block aria-busy:opacity-50 transition-opacity" do %>
+      <%= link_to "Load box health", ci_box_health_path, class: "text-sm text-neutral-400 hover:text-neutral-200" %>
+    <% end %>
+  </section>
+
+  <% if !@listing.success? %>
+    <p role="alert" class="rounded-md border border-red-900 bg-red-950/40 px-4 py-2 text-sm text-red-300">
+      CI box unreachable: <%= @listing.error %>
+    </p>
+  <% elsif @listing.runs.empty? %>
+    <p class="text-sm italic text-neutral-500">No CI runs on the box<%= " for #{@app}" if @app %> yet.</p>
+  <% else %>
+    <% in_progress, finished = @listing.runs.partition(&:live?) %>
+    <% if @step_times %>
+      <%= render "ci_runs/step_times", rows: @step_times, app: @app %>
+    <% end %>
+    <div class="overflow-x-auto">
+      <div class="min-w-[64rem]">
+        <% if in_progress.any? %>
+          <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-sky-400">In progress</h2>
+          <div id="ci_in_progress" class="mb-8 divide-y divide-neutral-900 rounded-lg border border-sky-900/60 bg-sky-950/10">
+            <%= render partial: "ci_runs/run_row", collection: in_progress, as: :run %>
+          </div>
+        <% end %>
+
+        <% if finished.any? %>
+          <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Recent</h2>
+          <div class="divide-y divide-neutral-900 rounded-lg border border-neutral-800">
+            <%= render partial: "ci_runs/run_row", collection: finished, as: :run %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>

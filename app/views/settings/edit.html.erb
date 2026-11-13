@@ -16,6 +16,19 @@
             class: "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100" %>
     </div>
 
+    <div>
+      <%= form.label :ci_host, "CI host", class: "mb-1 block text-sm text-neutral-400" %>
+      <%= form.text_field :ci_host, aria: { describedby: "ci_host_hint" },
+            class: "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100" %>
+      <p id="ci_host_hint" class="mt-1 text-xs text-neutral-500">Leave blank to hide the CI panel.</p>
+    </div>
+
+    <div>
+      <%= form.label :ci_user, "CI user", class: "mb-1 block text-sm text-neutral-400" %>
+      <%= form.text_field :ci_user,
+            class: "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100" %>
+    </div>
+
     <%= form.submit "Save",
           class: "self-start rounded-md bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-white" %>
   <% end %>

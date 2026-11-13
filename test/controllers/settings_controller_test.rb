@@ -12,4 +12,15 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     scanned = Kamander::Kamal::ConfigScanner.new(scan_root: Setting.current.expanded_scan_root).call
     assert_includes scanned.map { |app| File.basename(app.repo_path) }, "simple_app"
   end
+
+  test "operator points Kamander at a different CI box from the settings page" do
+    get edit_setting_url
+    assert_select "input[name='setting[ci_host]'][value='ci-box.test']"
+    assert_select "input[name='setting[ci_user]'][value='ci']"
+
+    patch setting_url, params: { setting: { ci_host: "other-box.test", ci_user: "builder" } }
+
+    assert_redirected_to edit_setting_path
+    assert_equal [ "other-box.test", "builder" ], Setting.current.reload.values_at(:ci_host, :ci_user)
+  end
 end

@@ -12,6 +12,37 @@ module Kamander
         CommandResult.new(exit_status: nil, success: false)
       end
 
+      # Its own process group, so stop also reaches the children it starts (remote-ci's ssh).
+      def spawn(command:, chdir:, out:, env: {})
+        pid = Bundler.with_unbundled_env do
+          Process.spawn(env, *command, chdir: chdir, in: File::NULL, out: [ out, "w" ], err: %i[child out], pgroup: true)
+        end
+        Background.new(pid)
+      end
+
+      class Background
+        def initialize(pid)
+          @pid = pid
+        end
+
+        def finished?
+          @status ||= Process.wait2(@pid, Process::WNOHANG)&.last
+          !@status.nil?
+        end
+
+        def success?
+          finished? && @status.success?
+        end
+
+        def stop
+          return if finished?
+
+          Process.kill("TERM", -@pid)
+          Process.detach(@pid)
+        rescue Errno::ESRCH
+        end
+      end
+
       private
 
       # A leading hash argument to Open3 merges onto the inherited environment rather than

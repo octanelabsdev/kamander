@@ -1,0 +1,34 @@
+<%# locals: rows, app %>
+<section id="ci_step_times" class="mb-8">
+  <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+    Step times <span class="normal-case tracking-normal text-neutral-600">· <%= app %>, passed test steps, oldest → newest</span>
+  </h2>
+  <% if rows.empty? %>
+    <p class="text-sm italic text-neutral-500">No step times recorded for <%= app %> yet. ci-box started recording them on 2026-11-12.</p>
+  <% else %>
+    <div class="divide-y divide-neutral-900 rounded-lg border border-neutral-800">
+      <% rows.each do |row| %>
+        <% peak = row.points.map(&:seconds).max %>
+        <div class="grid grid-cols-[11rem_minmax(0,1fr)_6rem_9rem] items-end gap-4 px-4 py-2.5 text-sm" data-step-times="<%= row.name %>">
+          <span class="truncate text-neutral-300" title="<%= row.name %>"><%= row.name %></span>
+          <div class="flex h-8 items-end gap-px">
+            <% row.points.each do |point| %>
+              <%= link_to "", ci_run_path(point.run.id),
+                    class: "block w-2 shrink-0 rounded-sm #{row.slow?(point.seconds) ? "bg-amber-500" : "bg-neutral-600 hover:bg-neutral-400"}",
+                    style: "height: #{[ (point.seconds / peak * 100).round, 4 ].max}%",
+                    title: "#{point.run.branch} #{point.run.short_sha} · #{ci_duration(point.seconds.round)}",
+                    data: { seconds: point.seconds } %>
+            <% end %>
+          </div>
+          <span class="text-right tabular-nums text-neutral-500" title="Median of <%= pluralize(row.points.size, "run") %>">
+            <%= ci_duration(row.median.round) %> <span class="text-xs">med</span>
+          </span>
+          <span class="text-right tabular-nums <%= row.slower? ? "text-amber-400" : "text-neutral-300" %>" data-latest>
+            <%= ci_duration(row.latest.round) %>
+            <% if row.slower? %><span class="text-xs">+<%= ((row.latest - row.median) / row.median * 100).round %>%</span><% end %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>

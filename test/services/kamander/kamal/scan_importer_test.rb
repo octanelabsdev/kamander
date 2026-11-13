@@ -133,10 +133,19 @@ class Kamander::Kamal::ScanImporterTest < ActiveSupport::TestCase
     assert_equal [ "deploy.yml" ], managed_app.app_destinations.pluck(:config_file)
   end
 
+  test "the scanned CI name is saved so the app can be matched to its runs on the CI box" do
+    scanned = scanned_app(repo_path: "/tmp/fixxer-docs", service_name: "fixxer", ci_name: "fixxer",
+      destinations: [ scanned_destination(config_file: "deploy.yml") ])
+
+    Kamander::Kamal::ScanImporter.new([ scanned ]).call
+
+    assert_equal "fixxer", ManagedApp.find_by(repo_path: "/tmp/fixxer-docs").ci_name
+  end
+
   private
 
-    def scanned_app(repo_path:, service_name: "app", destinations: [], error: nil)
-      Kamander::Kamal::ScannedApp.new(repo_path: repo_path, service_name: service_name,
+    def scanned_app(repo_path:, service_name: "app", ci_name: nil, destinations: [], error: nil)
+      Kamander::Kamal::ScannedApp.new(repo_path: repo_path, service_name: service_name, ci_name: ci_name,
         destinations: destinations, error: error)
     end
 

@@ -1,0 +1,54 @@
+# The box's records are the source of truth; nothing here is stored.
+class CiRunsController < ApplicationController
+  before_action :require_ci_host
+
+  def index
+    @app = params[:app].presence
+    @apps = ManagedApp.with_ci.distinct.order(:ci_name).pluck(:ci_name)
+    @listing = run_reader.call(app: @app)
+    @step_times = Kamander::Ci::StepTimes.new(@listing.runs).rows if @app && @listing.success?
+  end
+
+  # Loaded on click so the 30-second card broadcasts never touch the box.
+  def latest
+    @ci_names = ManagedApp.with_ci.distinct.order(:ci_name).pluck(:ci_name)
+    @listing = run_reader.call
+    @latest_runs = @listing.runs.group_by(&:app).transform_values(&:first)
+  end
+
+  def show
+    @listing = run_reader.find(params[:id])
+    @run = @listing.runs.first
+    return head :not_found if @listing.success? && @run.nil?
+
+    return unless @run
+
+    @log = run_reader.log(@run.id)
+    CiFollowJob.perform_later(@run.id) if @run.live?
+  end
+
+  # One attempt, no retries: a cancel that fails is reported, never repeated blind.
+  def cancel
+    run = run_reader.find(params[:id]).runs.first
+    return redirect_to ci_run_path(params[:id]), alert: "That run isn't running, so there is nothing to cancel." unless run&.live?
+
+    setting = Setting.current
+    result = Kamander::Ci::Canceller.new(host: setting.ci_host, user: setting.ci_user).call(run)
+    if result.success?
+      redirect_to ci_run_path(run.id), notice: "Cancel sent. ci-box records the run as cancelled once its steps stop."
+    else
+      redirect_to ci_run_path(run.id), alert: result.message
+    end
+  end
+
+  private
+
+    def require_ci_host
+      redirect_to edit_setting_path, alert: "Set a CI host to use the CI panel." if Setting.current.ci_host.nil?
+    end
+
+    def run_reader
+      setting = Setting.current
+      @run_reader ||= Kamander::Ci::RunReader.new(host: setting.ci_host, user: setting.ci_user)
+    end
+end

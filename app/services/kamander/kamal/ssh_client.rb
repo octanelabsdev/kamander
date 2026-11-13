@@ -15,23 +15,26 @@ module Kamander
       DEFAULT_TIMEOUT = 10
 
       def capture(host:, user:, command:, timeout: DEFAULT_TIMEOUT)
-        run(build_argv(user: user, host: host, command: command), timeout: timeout)
+        run(self.class.argv(user: user, host: host, command: command), timeout: timeout)
       rescue StandardError => e
         Result.new(stdout: "", success: false, error: e.message)
       end
 
-      private
-
-      def build_argv(user:, host:, command:)
+      # Public so streamed ssh (LogFollower) connects with the same options.
+      def self.argv(user:, host:, command:)
         [
           "ssh",
           "-o", "BatchMode=yes",
           "-o", "ConnectTimeout=#{CONNECT_TIMEOUT}",
           "-o", "StrictHostKeyChecking=accept-new",
+          "-o", "ServerAliveInterval=15",
+          "-o", "ServerAliveCountMax=3",
           "#{user}@#{host}",
           command
         ]
       end
+
+      private
 
       # pgroup: true puts ssh in its own process group so a timeout can kill
       # it (and anything it spawned, e.g. a ProxyCommand) in one signal —

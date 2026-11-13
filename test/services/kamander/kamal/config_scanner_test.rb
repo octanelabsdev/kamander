@@ -108,7 +108,40 @@ class Kamander::Kamal::ConfigScannerTest < ActiveSupport::TestCase
     end
   end
 
+  test "the CI name is the GitHub repo name from origin, the same rule remote-ci uses" do
+    {
+      "git@github.com:octanelabsdev/fixxer.git" => "fixxer",
+      "https://github.com/octanelabsdev/fixxer.git" => "fixxer",
+      "https://github.com/octanelabsdev/fixxer" => "fixxer"
+    }.each do |origin, expected|
+      with_git_repo("fixxer-docs", origin: origin) do |scan_root|
+        assert_equal expected, Kamander::Kamal::ConfigScanner.new(scan_root: scan_root).call.sole.ci_name, origin
+      end
+    end
+  end
+
+  test "a git repo with no origin gets no CI name" do
+    with_git_repo("local_only", origin: nil) do |scan_root|
+      assert_nil Kamander::Kamal::ConfigScanner.new(scan_root: scan_root).call.sole.ci_name
+    end
+  end
+
+  test "a repo without its own .git does not borrow the CI name of an enclosing repo" do
+    assert_nil app_for("simple_app").ci_name
+  end
+
   private
+
+    def with_git_repo(name, origin:)
+      Dir.mktmpdir do |scan_root|
+        repo = File.join(scan_root, name)
+        FileUtils.mkdir_p(File.join(repo, "config"))
+        File.write(File.join(repo, "config", "deploy.yml"), "service: #{name}\n")
+        system("git", "init", "-q", repo, exception: true)
+        system("git", "-C", repo, "remote", "add", "origin", origin, exception: true) if origin
+        yield scan_root
+      end
+    end
 
     def scan
       Kamander::Kamal::ConfigScanner.new(scan_root: file_fixture("repos").to_s).call
