@@ -1,0 +1,19 @@
+# systemd user unit for Kamander on a host where it runs as its own user.
+# Install: cp config/box/kamander.service ~/.config/systemd/user/ && systemctl --user enable --now kamander
+[Unit]
+Description=Kamander
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/kamander
+EnvironmentFile=%h/.config/kamander.env
+Environment=RAILS_ENV=production SOLID_QUEUE_IN_PUMA=1
+ExecStart=%h/.local/bin/mise exec -- bin/rails server -b 127.0.0.1 -p 3100
+Restart=on-failure
+RestartSec=5
+# CI can saturate the box; keep Kamander's share bounded.
+MemoryMax=2G
+CPUQuota=200%
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Update Kamander where it runs as a systemd user service (docs/shared-box.md).
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+git pull --ff-only
+export RAILS_ENV=production
+bundle install --quiet
+bin/rails db:prepare
+bin/rails assets:precompile
+systemctl --user restart kamander
+systemctl --user --no-pager status kamander | head -n 5
