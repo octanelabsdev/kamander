@@ -15,6 +15,16 @@ class Kamander::CloudflareAccessGateTest < ActiveSupport::TestCase
     assert_equal 200, call(host: PUBLIC_HOST, token: token).first
   end
 
+  test "the verified email reaches the app, so it can show who is signed in" do
+    seen = nil
+    gate = Kamander::CloudflareAccessGate.new(->(env) { seen = env[Kamander::CloudflareAccessGate::IDENTITY]; [ 200, {}, [] ] },
+      hosts: [ PUBLIC_HOST ], team_domain: TEAM, audience: AUD, jwks: jwks_loader)
+
+    gate.call(env_for(host: PUBLIC_HOST, token: token))
+
+    assert_equal "someone@example.com", seen
+  end
+
   test "the CF_Authorization cookie works when the header is absent" do
     assert_equal 200, call(host: PUBLIC_HOST, cookie: "CF_Authorization=#{token}").first
   end

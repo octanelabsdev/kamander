@@ -18,11 +18,14 @@ module Kamander
       check_setup!
     end
 
+    IDENTITY = "kamander.access_email".freeze
+
     def call(env)
       request = Rack::Request.new(env)
       return @app.call(env) unless gated?(request)
-      return refuse unless authentic?(request)
 
+      payload = verified_payload(request) or return refuse
+      env[IDENTITY] = payload["email"]
       @app.call(env)
     end
 
@@ -32,17 +35,16 @@ module Kamander
         request.get_header("HTTP_CF_RAY").present? || @hosts.include?(raw_host(request))
       end
 
-      def authentic?(request)
+      def verified_payload(request)
         token = request.get_header("HTTP_CF_ACCESS_JWT_ASSERTION").presence || request.cookies["CF_Authorization"].presence
-        return false unless token && @team_domain && @audience
+        return unless token && @team_domain && @audience
 
         JWT.decode(token, nil, true, algorithms: [ "RS256" ], jwks: method(:keys),
           aud: @audience, verify_aud: true, iss: @team_domain, verify_iss: true,
-          verify_expiration: true, required_claims: %w[exp aud iss])
-        true
+          verify_expiration: true, required_claims: %w[exp aud iss]).first
       rescue StandardError => e
         Rails.logger.warn("Cloudflare Access: refused #{request.host}#{request.path}: #{e.class}: #{e.message}")
-        false
+        nil
       end
 
       def keys(options)
