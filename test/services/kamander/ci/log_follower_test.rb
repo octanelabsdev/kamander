@@ -2,7 +2,7 @@ require "test_helper"
 
 class Kamander::Ci::LogFollowerTest < ActiveSupport::TestCase
   ID = "fixxer-20261112T090000Z-11".freeze
-  TAIL = Kamander::Kamal::SshClient.argv(user: "ci", host: "legion",
+  TAIL = Kamander::Kamal::SshClient.argv(user: "ci", host: "ci-box.test",
     command: "tail -n 0 -f --pid=4242 /data/ci/logs/#{ID}.log")
 
   test "a live run's new log lines stream to its page, escaped and without colour codes, then the page refreshes" do
@@ -31,7 +31,7 @@ class Kamander::Ci::LogFollowerTest < ActiveSupport::TestCase
   private
 
     def follow(run, runner)
-      Kamander::Ci::LogFollower.new(run: run, host: "legion", user: "ci", command_runner: runner).call
+      Kamander::Ci::LogFollower.new(run: run, host: "ci-box.test", user: "ci", command_runner: runner).call
     end
 
     def ci_run(alive:)

@@ -17,7 +17,7 @@ class Kamander::Ci::LauncherTest < ActiveSupport::TestCase
 
   test "Evan's dry run starts remote-ci --dry-run in the app's repo and the launch points at the run it made" do
     runner = FakeCommandRunner.new(responses: { %w[remote-ci --dry-run] => {
-      lines: [ "remote-ci: fixxer @ #{@head.first(7)} (main) on ci@legion [dry run, no signoff]" ],
+      lines: [ "remote-ci: fixxer @ #{@head.first(7)} (main) on ci@ci-box.test [dry run, no signoff]" ],
       on_spawn: -> { @box.records << FakeCiBox.record(NEW_RUN, sha: @head, status: "queued", dry_run: true) }
     } })
 
@@ -25,7 +25,7 @@ class Kamander::Ci::LauncherTest < ActiveSupport::TestCase
 
     call = runner.calls.sole
     assert_equal @repo, call.chdir
-    assert_equal({ "REMOTE_CI_HOST" => "ci@legion" }, call.env)
+    assert_equal({ "REMOTE_CI_HOST" => "ci@ci-box.test" }, call.env)
     assert launch.started?, launch.output
     assert_equal NEW_RUN, launch.run_id
     assert_includes launch.output, "[dry run, no signoff]"
@@ -76,7 +76,7 @@ class Kamander::Ci::LauncherTest < ActiveSupport::TestCase
   end
 
   test "with the CI box unreachable nothing runs" do
-    @box = FakeCiBox.new(responses: { "legion" => :unreachable })
+    @box = FakeCiBox.new(responses: { "ci-box.test" => :unreachable })
     runner = FakeCommandRunner.new
 
     launch = launch!(dry_run: true, runner: runner)
@@ -109,7 +109,7 @@ class Kamander::Ci::LauncherTest < ActiveSupport::TestCase
 
     def launch!(dry_run:, runner:, sha: @head)
       launch = CiLaunch.create!(managed_app: @app, sha: sha, branch: "main", dry_run: dry_run)
-      Kamander::Ci::Launcher.new(launch: launch, host: "legion", user: "ci", ssh_client: @box,
+      Kamander::Ci::Launcher.new(launch: launch, host: "ci-box.test", user: "ci", ssh_client: @box,
         command_runner: runner, poll_interval: 0).call
       launch.reload
     end

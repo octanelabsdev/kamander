@@ -2,9 +2,9 @@ require "test_helper"
 
 class Kamander::Ci::BoxHealthTest < ActiveSupport::TestCase
   test "Evan sees the box's load, memory, disks, GPU, services and battery from one call" do
-    box = FakeSshClient.new(responses: { "legion" => BOX_HEALTH_OUTPUT })
+    box = FakeSshClient.new(responses: { "ci-box.test" => BOX_HEALTH_OUTPUT })
 
-    health = Kamander::Ci::BoxHealth.new(host: "legion", user: "ci", ssh_client: box).call
+    health = Kamander::Ci::BoxHealth.new(host: "ci-box.test", user: "ci", ssh_client: box).call
 
     assert health.success?
     assert_equal 1, box.calls.size
@@ -20,8 +20,8 @@ class Kamander::Ci::BoxHealthTest < ActiveSupport::TestCase
   end
 
   test "anything the box can't report stays unknown instead of failing the strip" do
-    health = Kamander::Ci::BoxHealth.new(host: "legion", user: "ci",
-      ssh_client: FakeSshClient.new(responses: { "legion" => "cpus=8\nload=0.10 0.20 0.30\n" })).call
+    health = Kamander::Ci::BoxHealth.new(host: "ci-box.test", user: "ci",
+      ssh_client: FakeSshClient.new(responses: { "ci-box.test" => "cpus=8\nload=0.10 0.20 0.30\n" })).call
 
     assert health.success?
     assert_nil health.gpu_temp
@@ -31,8 +31,8 @@ class Kamander::Ci::BoxHealthTest < ActiveSupport::TestCase
   end
 
   test "an unreachable box comes back as an error, not an exception" do
-    health = Kamander::Ci::BoxHealth.new(host: "legion", user: "ci",
-      ssh_client: FakeSshClient.new(responses: { "legion" => :unreachable })).call
+    health = Kamander::Ci::BoxHealth.new(host: "ci-box.test", user: "ci",
+      ssh_client: FakeSshClient.new(responses: { "ci-box.test" => :unreachable })).call
 
     assert_not health.success?
     assert_equal "connection unreachable", health.error

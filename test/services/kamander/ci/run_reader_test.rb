@@ -136,9 +136,9 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
   end
 
   test "an unreachable CI box comes back as an error instead of raising" do
-    fake = FakeSshClient.new(responses: { "legion" => :unreachable })
+    fake = FakeSshClient.new(responses: { "ci-box.test" => :unreachable })
 
-    listing = Kamander::Ci::RunReader.new(host: "legion", user: "ci", ssh_client: fake).call
+    listing = Kamander::Ci::RunReader.new(host: "ci-box.test", user: "ci", ssh_client: fake).call
 
     assert_not listing.success?
     assert_equal "connection unreachable", listing.error
@@ -149,7 +149,7 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
   test "an app name that isn't a plain repo name is refused before anything reaches the shell" do
     fake = FakeSshClient.new
 
-    listing = Kamander::Ci::RunReader.new(host: "legion", user: "ci", ssh_client: fake).call(app: "x; rm -rf /")
+    listing = Kamander::Ci::RunReader.new(host: "ci-box.test", user: "ci", ssh_client: fake).call(app: "x; rm -rf /")
 
     assert_not listing.success?
     assert_empty fake.calls
@@ -169,7 +169,7 @@ class Kamander::Ci::RunReaderTest < ActiveSupport::TestCase
     def write_record(id, app: "fixxer", status: "passed", pid: 999, exit_code: nil, steps: [],
       started_at: "2026-11-12T08:00:00Z", finished_at: nil, **extra)
       record = { app: app, sha: "abc1234def5678", branch: "main", dry_run: false, status: status, exit_code: exit_code,
-                 started_at: started_at, finished_at: finished_at, host: "legion", pid: pid,
+                 started_at: started_at, finished_at: finished_at, host: "ci-box.test", pid: pid,
                  log: log_path(id), steps: steps, **extra }
       record.delete(:pid) if pid.nil?
       File.write(record_path(id), JSON.pretty_generate(record))

@@ -2,7 +2,7 @@ require "test_helper"
 
 class CiFollowJobTest < ActiveJob::TestCase
   ID = "fixxer-20261112T090000Z-11".freeze
-  TAIL = Kamander::Kamal::SshClient.argv(user: "ci", host: "legion",
+  TAIL = Kamander::Kamal::SshClient.argv(user: "ci", host: "ci-box.test",
     command: "tail -n 0 -f --pid=4242 /data/ci/logs/#{ID}.log")
 
   setup do

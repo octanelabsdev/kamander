@@ -13,7 +13,7 @@ class CiLaunchJobTest < ActiveJob::TestCase
   end
 
   test "launching on an unreachable box fails the launch and refreshes its page" do
-    Kamander::Kamal.ssh_client = FakeCiBox.new(responses: { "legion" => :unreachable })
+    Kamander::Kamal.ssh_client = FakeCiBox.new(responses: { "ci-box.test" => :unreachable })
     Kamander::Kamal.command_runner = FakeCommandRunner.new
 
     perform_enqueued_jobs { CiLaunchJob.perform_later(@launch) }

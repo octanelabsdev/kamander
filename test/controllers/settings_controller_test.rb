@@ -15,12 +15,12 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
 
   test "operator points Kamander at a different CI box from the settings page" do
     get edit_setting_url
-    assert_select "input[name='setting[ci_host]'][value='legion']"
+    assert_select "input[name='setting[ci_host]'][value='ci-box.test']"
     assert_select "input[name='setting[ci_user]'][value='ci']"
 
-    patch setting_url, params: { setting: { ci_host: "legion2", ci_user: "builder" } }
+    patch setting_url, params: { setting: { ci_host: "other-box.test", ci_user: "builder" } }
 
     assert_redirected_to edit_setting_path
-    assert_equal [ "legion2", "builder" ], Setting.current.reload.values_at(:ci_host, :ci_user)
+    assert_equal [ "other-box.test", "builder" ], Setting.current.reload.values_at(:ci_host, :ci_user)
   end
 end

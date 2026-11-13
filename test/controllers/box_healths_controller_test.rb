@@ -13,7 +13,7 @@ class BoxHealthsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "Evan loads box health and sees load, memory, disks, services and battery, with trouble flagged" do
-    Kamander::Kamal.ssh_client = FakeSshClient.new(responses: { "legion" => BOX_HEALTH_OUTPUT.sub("disk /data=104857600", "disk /data=1048576") })
+    Kamander::Kamal.ssh_client = FakeSshClient.new(responses: { "ci-box.test" => BOX_HEALTH_OUTPUT.sub("disk /data=104857600", "disk /data=1048576") })
 
     get ci_box_health_url
 
@@ -29,11 +29,11 @@ class BoxHealthsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "a box that can't report a value shows unknown, and an unreachable box shows the error in the strip" do
-    Kamander::Kamal.ssh_client = FakeSshClient.new(responses: { "legion" => "cpus=8\n" })
+    Kamander::Kamal.ssh_client = FakeSshClient.new(responses: { "ci-box.test" => "cpus=8\n" })
     get ci_box_health_url
     assert_select "[data-stat=GPU]", text: /unknown/
 
-    Kamander::Kamal.ssh_client = FakeSshClient.new(responses: { "legion" => :unreachable })
+    Kamander::Kamal.ssh_client = FakeSshClient.new(responses: { "ci-box.test" => :unreachable })
     get ci_box_health_url
     assert_select "turbo-frame#box_health [role=alert]", text: /CI box unreachable: connection unreachable/
   end

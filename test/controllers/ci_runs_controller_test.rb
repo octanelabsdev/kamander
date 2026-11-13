@@ -226,7 +226,7 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
   test "Evan cancels a live run: one kill for that pid, then back on the run with a notice" do
     id = "fixxer-20261112T090000Z-11"
     box = Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "running").merge(pid: 4242), live: [ id ],
-      responses: { "legion" => "#{Kamander::Ci::Canceller::SENT}\n" })
+      responses: { "ci-box.test" => "#{Kamander::Ci::Canceller::SENT}\n" })
 
     post cancel_ci_run_url(id)
 
@@ -251,7 +251,7 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
   test "a refused cancel shows the box's reason and is not retried" do
     id = "fixxer-20261112T090000Z-11"
     box = Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, status: "running").merge(pid: 4242), live: [ id ],
-      responses: { "legion" => "kamander: pid 4242 is not this run any more\n" })
+      responses: { "ci-box.test" => "kamander: pid 4242 is not this run any more\n" })
 
     post cancel_ci_run_url(id)
 
@@ -262,7 +262,7 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
   test "a run of a repo with a dot in its name opens and can be cancelled" do
     id = "foo.dev-20261112T090000Z-11"
     Kamander::Kamal.ssh_client = FakeCiBox.serving(record(id, app: "foo.dev", status: "running").merge(pid: 4242), live: [ id ],
-      responses: { "legion" => "#{Kamander::Ci::Canceller::SENT}\n" })
+      responses: { "ci-box.test" => "#{Kamander::Ci::Canceller::SENT}\n" })
 
     get ci_run_url(id)
     assert_response :success
@@ -296,7 +296,7 @@ class CiRunsControllerTest < ActionDispatch::IntegrationTest
   private
 
     def stub_box(response)
-      Kamander::Kamal.ssh_client = FakeCiBox.new(responses: { "legion" => response })
+      Kamander::Kamal.ssh_client = FakeCiBox.new(responses: { "ci-box.test" => response })
     end
 
     def ci_records(*records)

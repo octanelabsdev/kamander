@@ -52,8 +52,8 @@ class Kamander::Ci::CancellerTest < ActiveSupport::TestCase
   end
 
   test "with the CI box unreachable the cancel says so" do
-    result = Kamander::Ci::Canceller.new(host: "legion", user: "ci",
-      ssh_client: FakeSshClient.new(responses: { "legion" => :unreachable })).call(ci_run)
+    result = Kamander::Ci::Canceller.new(host: "ci-box.test", user: "ci",
+      ssh_client: FakeSshClient.new(responses: { "ci-box.test" => :unreachable })).call(ci_run)
 
     assert_not result.success?
     assert_includes result.message, "CI box unreachable"

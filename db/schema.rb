@@ -89,7 +89,7 @@ end
   end
 
   create_table "settings", force: :cascade do |t|
-    t.string "ci_host", default: "legion"
+    t.string "ci_host"
     t.string "ci_user", default: "ci", null: false
     t.datetime "created_at", null: false
     t.string "default_ssh_user", default: "deploy", null: false

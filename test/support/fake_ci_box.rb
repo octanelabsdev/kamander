@@ -16,7 +16,7 @@ class FakeCiBox < FakeSshClient
   def self.record(id, app: "fixxer", status: "passed", dry_run: false, steps: [], sha: "abc1234def5678")
     { id: id, app: app, sha: sha, branch: "main", dry_run: dry_run, status: status,
       exit_code: status == "passed" ? 0 : 1, started_at: "2026-11-12T09:00:00Z", finished_at: "2026-11-12T09:04:30Z",
-      host: "legion", pid: 1, log: "/data/ci/logs/#{id}.log", steps: steps }
+      host: "ci-box.test", pid: 1, log: "/data/ci/logs/#{id}.log", steps: steps }
   end
 
   def initialize(records: nil, live: [], responses: {})

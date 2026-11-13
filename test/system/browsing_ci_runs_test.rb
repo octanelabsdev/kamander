@@ -44,7 +44,7 @@ class BrowsingCiRunsTest < ApplicationSystemTestCase
   test "Evan cancels a live run after confirming which run it is" do
     id = "fixxer-20261112T090000Z-11"
     Kamander::Kamal.ssh_client = FakeCiBox.serving(FakeCiBox.record(id, status: "running").merge(pid: 4242), live: [ id ],
-      responses: { "legion" => "#{Kamander::Ci::Canceller::SENT}\n" })
+      responses: { "ci-box.test" => "#{Kamander::Ci::Canceller::SENT}\n" })
 
     visit ci_run_path(id)
     accept_confirm(/Cancel fixxer main abc1234/) { click_on "Cancel run" }
@@ -54,7 +54,7 @@ class BrowsingCiRunsTest < ApplicationSystemTestCase
   end
 
   test "Evan loads box health on the CI page and sees the box's services" do
-    Kamander::Kamal.ssh_client = FakeCiBox.serving(responses: { "legion" => BOX_HEALTH_OUTPUT })
+    Kamander::Kamal.ssh_client = FakeCiBox.serving(responses: { "ci-box.test" => BOX_HEALTH_OUTPUT })
 
     visit ci_runs_path
     click_on "Load box health"
