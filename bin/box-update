@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 git pull --ff-only
 export RAILS_ENV=production
-bundle install --quiet
+BUNDLE_WITHOUT=development:test bundle install --quiet
 bin/rails db:prepare
 bin/rails assets:precompile
 systemctl --user restart kamander

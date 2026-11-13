@@ -28,8 +28,7 @@ class ScansController < ApplicationController
     end
 
     def pull_failure_message(failures)
-      "Couldn't update #{failures.map { |failure| "#{File.basename(failure.repo_path)} (#{failure.message.lines.first&.strip})" }.join("; ")}. " \
-        "Those were scanned as they are."
+      "Couldn't update #{failures.map(&:summary).join("; ")}. Those were scanned as they are."
     end
 
     def run_scan

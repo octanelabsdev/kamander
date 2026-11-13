@@ -2,11 +2,10 @@ require "jwt"
 require "net/http"
 
 module Kamander
-  # Kamander has no login and can restart production, so anything that came
-  # through Cloudflare must carry a valid Access token: a missing or broken
-  # Access application then fails closed instead of exposing the app.
+  # Kamander has no login, so a broken Access application must fail closed here.
   class CloudflareAccessGate
     KEY_TTL = 1.hour
+    REFETCH_AFTER = 1.minute
 
     def initialize(app, hosts: ENV.fetch("CF_ACCESS_HOSTS", "").split(","), team_domain: ENV["CF_ACCESS_TEAM_DOMAIN"],
       audience: ENV["CF_ACCESS_AUD"], jwks: nil)
@@ -16,6 +15,7 @@ module Kamander
       @audience = audience.to_s.strip.presence
       @fetch_keys = jwks || method(:fetch_keys)
       @mutex = Mutex.new
+      check_setup!
     end
 
     def call(env)
@@ -29,7 +29,7 @@ module Kamander
     private
 
       def gated?(request)
-        request.get_header("HTTP_CF_RAY").present? || @hosts.include?(request.host.to_s.downcase)
+        request.get_header("HTTP_CF_RAY").present? || @hosts.include?(raw_host(request))
       end
 
       def authentic?(request)
@@ -47,7 +47,7 @@ module Kamander
 
       def keys(options)
         @mutex.synchronize do
-          if @keys.nil? || options[:invalidate] || @fetched_at < KEY_TTL.ago
+          if @keys.nil? || @fetched_at < KEY_TTL.ago || (options[:invalidate] && @fetched_at < REFETCH_AFTER.ago)
             @keys = @fetch_keys.call(options)
             @fetched_at = Time.current
           end
@@ -61,6 +61,17 @@ module Kamander
         raise "certs endpoint returned #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
         JSON.parse(response.body)
+      end
+
+      # Not request.host: Rack prefers X-Forwarded-Host and Forwarded, which a client can set.
+      def raw_host(request)
+        request.get_header("HTTP_HOST").to_s.downcase.split(":").first.to_s
+      end
+
+      def check_setup!
+        return if @hosts.empty?
+        raise ArgumentError, "CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD must be set when CF_ACCESS_HOSTS is" unless @team_domain && @audience
+        raise ArgumentError, "CF_ACCESS_TEAM_DOMAIN must start with https://" unless @team_domain.start_with?("https://")
       end
 
       def refuse

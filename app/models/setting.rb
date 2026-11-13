@@ -8,6 +8,10 @@ class Setting < ApplicationRecord
     first_or_create!
   end
 
+  def allows?(verb)
+    kamal_verbs_enabled || !verb.to_s.in?(Operation::KAMAL_VERBS)
+  end
+
   def expanded_scan_root
     File.expand_path(scan_root)
   end

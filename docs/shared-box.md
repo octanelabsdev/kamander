@@ -1,13 +1,18 @@
 # Running Kamander on a shared box
 
 How Kamander runs on a shared CI box: as its own Unix user, under
-systemd, bound to 127.0.0.1, reached through Cloudflare Access and Tailscale.
+systemd, reached through Cloudflare Access and Tailscale.
 
 ## Why it looks like this
 
 - **Its own user, no `docker`, `sudo` or `lxd`.** The fleet SSH key lives in
-  this user's home. The box also runs every branch's CI as `ci`; Unix
-  permissions keep `ci` out, and the user has no path to root.
+  this user's home, which `ci` (every branch's CI) can't read, and the user
+  has no path to root.
+- **No open port for other local users.** Unix permissions don't cover a
+  loopback port, and Kamander has no login. Puma listens on a Unix socket in a
+  0700 directory, which cloudflared uses, and on `127.0.0.1:3100` for
+  `tailscale serve`, which only proxies to TCP. A firewall rule lets only root
+  (tailscaled) and `kamander` connect to 3100.
 - **No app secrets on the box.** `kamal app boot` uploads each app's production
   secrets from the machine running it, so reboot/start/stop stay on a machine
   that holds them. Turn off "Reboot, start and stop from here" in Settings.
@@ -25,6 +30,10 @@ CF_ACCESS_AUD=<Access application AUD tag>
 ```
 
 `config/master.key` is copied in by hand; it is Kamander's only secret besides the fleet key.
+
+Production sets `assume_ssl` because both proxies terminate TLS. A form posted
+to plain `http://127.0.0.1:3100` directly, without a proxy, fails the CSRF
+origin check; use the tailnet URL.
 
 ## First install (as the admin user, then as `kamander`)
 
@@ -47,6 +56,26 @@ systemctl --user daemon-reload && systemctl --user enable --now kamander
 curl -fsS http://127.0.0.1:3100/up
 ```
 
+Firewall (admin user), so `ci` and other local users can't reach the TCP port:
+
+```sh
+sudo nft add table inet kamander
+sudo nft add chain inet kamander out '{ type filter hook output priority 0; }'
+sudo nft add rule inet kamander out oifname lo tcp dport 3100 meta skuid != '{ 0, kamander }' reject
+# persist it: add the table to /etc/nftables.conf and enable nftables.service
+```
+
+Cloudflare Tunnel ingress (cloudflared runs as root, so it can open the socket):
+
+```yaml
+ingress:
+  - hostname: <public hostname>
+    service: unix:/home/kamander/kamander/tmp/sockets/puma.sock
+  - service: http_status:404
+```
+
+Tailscale: `sudo tailscale serve --bg 3100`.
+
 Then in Kamander's Settings: scan root `~/repos`, pull before scan on,
 kamal verbs off, CI host `localhost`, CI user `ci`.
 
@@ -63,5 +92,7 @@ sudo -iu kamander ~/kamander/bin/box-update
 
 ```sh
 sudo -u ci cat ~kamander/.ssh/id_ed25519      # Permission denied
+sudo -u ci curl -m 3 http://127.0.0.1:3100/up # refused by the firewall rule
+sudo -u ci curl -m 3 --unix-socket ~kamander/kamander/tmp/sockets/puma.sock http://x/up  # Permission denied
 curl -sI https://<public hostname> | head -1   # Access login, not Kamander
 ```

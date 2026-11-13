@@ -9,7 +9,7 @@ class OperationsController < ApplicationController
     verb = operation_params[:verb].to_s
 
     return reject(%(Unknown operation "#{verb}".)) unless Operation.verbs.key?(verb)
-    return reject(kamal_verbs_off_message(verb)) if verb.in?(Operation::KAMAL_VERBS) && !Setting.current.kamal_verbs_enabled
+    return reject(kamal_verbs_off_message(verb)) unless Setting.current.allows?(verb)
     return reject(busy_message(destination)) if destination.active_operation
 
     operation = Operation.new(managed_app: destination.managed_app, app_destination: destination,

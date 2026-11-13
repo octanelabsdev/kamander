@@ -1,11 +1,11 @@
 module Kamander
   module Kamal
-    # Fast-forwards each git repo under the scan root, so a host that keeps its
-    # own clones (a shared box) reads current deploy config. Never merges or resets:
-    # a clone that can't fast-forward is reported and left as it is.
+    # Fast-forward only: a clone that can't is reported and left exactly as it is.
     class RepoUpdater
       Result = Data.define(:repo_path, :success, :message) do
         def success? = success
+
+        def summary = "#{File.basename(repo_path)} (#{message.lines.first&.strip})"
       end
 
       # No prompts, and give up on a stalled network instead of hanging the request.
@@ -17,7 +17,8 @@ module Kamander
       end
 
       def call
-        Dir.glob(File.join(@scan_root, "*", ".git")).sort.map { |git_dir| pull(File.dirname(git_dir)) }
+        repos = Dir.glob(File.join(@scan_root, "*", ".git")).sort.map { |git_dir| File.dirname(git_dir) }
+        repos.map { |repo_path| Thread.new { pull(repo_path) } }.map(&:value)
       end
 
       private

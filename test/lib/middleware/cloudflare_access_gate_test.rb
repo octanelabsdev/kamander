@@ -53,22 +53,38 @@ class Kamander::CloudflareAccessGateTest < ActiveSupport::TestCase
     assert_equal 200, call(host: "localhost").first
   end
 
+  test "forwarded host headers can't move a public-hostname request out from under the gate" do
+    assert_equal 403, call(host: PUBLIC_HOST, env: { "HTTP_X_FORWARDED_HOST" => "localhost" }).first
+    assert_equal 403, call(host: PUBLIC_HOST, env: { "HTTP_FORWARDED" => "host=localhost" }).first
+  end
+
   test "anything that came through Cloudflare is gated, whatever its Host header says" do
     assert_equal 403, call(host: "localhost", env: { "HTTP_CF_RAY" => "8a1b2c3d4e5f-IAD" }).first
   end
 
-  test "with the team or audience unset, the public hostname fails closed" do
-    gate = Kamander::CloudflareAccessGate.new(ok_app, hosts: [ PUBLIC_HOST ], team_domain: TEAM, audience: nil, jwks: jwks_loader)
-
-    assert_equal 403, gate.call(env_for(host: PUBLIC_HOST, token: token)).first
+  test "an incomplete Access setup stops Kamander from booting instead of refusing every request quietly" do
+    assert_raises(ArgumentError) { Kamander::CloudflareAccessGate.new(ok_app, hosts: [ PUBLIC_HOST ], team_domain: TEAM, audience: nil) }
+    assert_raises(ArgumentError) { Kamander::CloudflareAccessGate.new(ok_app, hosts: [ PUBLIC_HOST ], team_domain: "octane.cloudflareaccess.com", audience: AUD) }
   end
 
-  test "Cloudflare's keys are fetched once, and again only for a key id it hasn't seen" do
+  test "with no Access setup at all, a request through Cloudflare still fails closed" do
+    gate = Kamander::CloudflareAccessGate.new(ok_app, hosts: [], team_domain: nil, audience: nil, jwks: jwks_loader)
+
+    assert_equal 403, gate.call(env_for(host: "localhost").merge("HTTP_CF_RAY" => "8a1b2c3d4e5f-IAD")).first
+  end
+
+  test "Cloudflare's keys are fetched once; an unknown key id refetches at most once a minute" do
     gate = build_gate
+    rotated = -> { JWT.encode(claims, @key, "RS256", kid: "rotated-#{SecureRandom.hex(4)}") }
     2.times { gate.call(env_for(host: PUBLIC_HOST, token: token)) }
     assert_equal 1, @fetches
 
-    gate.call(env_for(host: PUBLIC_HOST, token: JWT.encode(claims, @key, "RS256", kid: "rotated")))
+    5.times { gate.call(env_for(host: PUBLIC_HOST, token: rotated.call)) }
+    assert_equal 1, @fetches, "random key ids must not force a fetch per request"
+
+    travel 61.seconds do
+      gate.call(env_for(host: PUBLIC_HOST, token: rotated.call))
+    end
     assert_equal 2, @fetches
   end
 

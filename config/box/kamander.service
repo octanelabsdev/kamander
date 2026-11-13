@@ -8,7 +8,10 @@ After=network-online.target
 WorkingDirectory=%h/kamander
 EnvironmentFile=%h/.config/kamander.env
 Environment=RAILS_ENV=production SOLID_QUEUE_IN_PUMA=1
-ExecStart=%h/.local/bin/mise exec -- bin/rails server -b 127.0.0.1 -p 3100
+# The socket (in a 0700 directory) is for cloudflared; 127.0.0.1:3100 is for tailscale serve,
+# which only proxies to TCP, and is limited to root and kamander by a firewall rule.
+ExecStartPre=/usr/bin/install -d -m 700 %h/kamander/tmp/sockets
+ExecStart=%h/.local/bin/mise exec -- bundle exec puma -C config/puma.rb -b unix://%h/kamander/tmp/sockets/puma.sock -b tcp://127.0.0.1:3100
 Restart=on-failure
 RestartSec=5
 # CI can saturate the box; keep Kamander's share bounded.
