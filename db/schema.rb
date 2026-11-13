@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_030511) do
   create_table "app_destinations", force: :cascade do |t|
     t.json "accessory_names", default: [], null: false
     t.string "config_file", null: false
@@ -93,6 +93,7 @@ end
     t.string "ci_user", default: "ci", null: false
     t.datetime "created_at", null: false
     t.string "default_ssh_user", default: "deploy", null: false
+    t.boolean "kamal_verbs_enabled", default: true, null: false
     t.string "scan_root", default: "~/Development", null: false
     t.datetime "updated_at", null: false
   end
