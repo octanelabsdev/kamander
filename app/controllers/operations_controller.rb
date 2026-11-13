@@ -9,6 +9,7 @@ class OperationsController < ApplicationController
     verb = operation_params[:verb].to_s
 
     return reject(%(Unknown operation "#{verb}".)) unless Operation.verbs.key?(verb)
+    return reject(kamal_verbs_off_message(verb)) unless Setting.current.allows?(verb)
     return reject(busy_message(destination)) if destination.active_operation
 
     operation = Operation.new(managed_app: destination.managed_app, app_destination: destination,
@@ -32,6 +33,10 @@ class OperationsController < ApplicationController
 
     def reject(message)
       redirect_back fallback_location: root_path, alert: message
+    end
+
+    def kamal_verbs_off_message(verb)
+      "#{verb.capitalize} runs kamal, which needs the app's secrets, and they aren't on this machine. Run it from Kamander on your Mac."
     end
 
     def busy_message(destination)

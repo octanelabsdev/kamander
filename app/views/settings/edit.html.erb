@@ -29,6 +29,22 @@
             class: "w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100" %>
     </div>
 
+    <div>
+      <label class="flex items-center gap-2 text-sm text-neutral-300">
+        <%= form.check_box :kamal_verbs_enabled, aria: { describedby: "kamal_verbs_hint" } %>
+        Reboot, start and stop from here
+      </label>
+      <p id="kamal_verbs_hint" class="mt-1 text-xs text-neutral-500">These run each app's bin/kamal, which needs its production secrets on this machine. Turn off where they aren't.</p>
+    </div>
+
+    <div>
+      <label class="flex items-center gap-2 text-sm text-neutral-300">
+        <%= form.check_box :pull_before_scan, aria: { describedby: "pull_before_scan_hint" } %>
+        Pull repos before each scan
+      </label>
+      <p id="pull_before_scan_hint" class="mt-1 text-xs text-neutral-500">git pull --ff-only in each repo under the scan root. Only for clones Kamander owns, never your working repos.</p>
+    </div>
+
     <%= form.submit "Save",
           class: "self-start rounded-md bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-white" %>
   <% end %>

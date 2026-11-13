@@ -33,6 +33,11 @@
           <% end %>
           <%= link_to "Scan review", scan_path, class: "text-neutral-400 hover:text-neutral-100" %>
           <%= link_to "Settings", edit_setting_path, class: "text-neutral-400 hover:text-neutral-100" %>
+          <% if (access_email = request.env[Kamander::CloudflareAccessGate::IDENTITY]) %>
+            <span class="text-neutral-600" title="Signed in through Cloudflare Access"><%= access_email %></span>
+            <%# Cloudflare's own logout ends the Access session (for every app on the team). %>
+            <%= link_to "Log out", "/cdn-cgi/access/logout", class: "text-neutral-400 hover:text-neutral-100", data: { turbo: false } %>
+          <% end %>
         </div>
       </nav>
     </header>

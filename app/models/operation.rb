@@ -2,6 +2,9 @@ class Operation < ApplicationRecord
   enum :verb, { restart: 0, reboot: 1, stop: 2, start: 3 }
   enum :status, { queued: 0, running: 1, succeeded: 2, failed: 3 }
 
+  # These run the app's bin/kamal, which needs its production secrets on this machine.
+  KAMAL_VERBS = %w[reboot start stop].freeze
+
   belongs_to :managed_app
   belongs_to :app_destination
 

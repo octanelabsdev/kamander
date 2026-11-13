@@ -82,4 +82,21 @@ class ManagedAppsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Scan for apps", response.body
   end
+
+  test "with kamal verbs off, a running app offers only Restart and says where the rest run" do
+    Setting.current.update!(kamal_verbs_enabled: false)
+
+    get managed_app_url(managed_apps(:track_planner))
+
+    assert_select "button", text: "Restart"
+    assert_select "button", text: "Reboot", count: 0
+    assert_select "button", text: /Stop/, count: 0
+    assert_select "[data-kamal-verbs-off]", text: /secrets/
+  end
+
+  test "Evan turns kamal verbs off in settings" do
+    patch setting_url, params: { setting: { kamal_verbs_enabled: "0" } }
+
+    assert_not Setting.current.reload.kamal_verbs_enabled
+  end
 end

@@ -25,7 +25,8 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  # Cloudflare Tunnel and tailscale serve both terminate TLS and forward to 127.0.0.1.
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
@@ -79,12 +80,7 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # The public (Access) and tailnet names Kamander answers to, comma-separated.
+  config.hosts = [ "localhost", "127.0.0.1", *ENV.fetch("KAMANDER_HOSTS", "").split(",").map(&:strip).reject(&:empty?) ]
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

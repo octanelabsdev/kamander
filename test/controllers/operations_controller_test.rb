@@ -60,6 +60,20 @@ class OperationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "with kamal verbs off, reboot is refused because this machine doesn't hold the app's secrets; restart still runs" do
+    Setting.current.update!(kamal_verbs_enabled: false)
+    destination = app_destinations(:track_planner_production)
+
+    assert_no_difference "Operation.count" do
+      post operations_url, params: { verb: "reboot", app_destination_id: destination.id }
+    end
+    assert_match(/secrets/, flash[:alert])
+
+    assert_difference "Operation.count", 1 do
+      post operations_url, params: { verb: "restart", app_destination_id: destination.id }
+    end
+  end
+
   test "an invalid verb is rejected" do
     destination = app_destinations(:track_planner_production)
 
