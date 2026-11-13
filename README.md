@@ -39,7 +39,7 @@ with it.
 
 ## Requirements
 
-- Ruby 3.4.4 (see `.ruby-version`; managed with mise)
+- Ruby 4.0.7 (see `.ruby-version`; managed with mise)
 - SQLite 3
 - `ssh` on your `PATH`, with `~/.ssh/config` and an agent already set up for the target
   servers — Kamander shells out to the system binary and inherits your existing config.
