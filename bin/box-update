@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 git pull --ff-only
+mise install --yes   # a .ruby-version bump needs the new Ruby before bundle runs
 export RAILS_ENV=production
 BUNDLE_WITHOUT=development:test bundle install --quiet
 bin/rails db:prepare
