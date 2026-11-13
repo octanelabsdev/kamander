@@ -7,8 +7,9 @@
 # trusting a stashed copy that a page refresh would lose anyway.
 class ScansController < ApplicationController
   def create
+    failed_pulls = pull_repos.reject(&:success?)
     Kamander::Kamal::ScanImporter.new(run_scan).call
-    redirect_to scan_path, notice: "Scan complete."
+    redirect_to scan_path, notice: "Scan complete.", alert: (pull_failure_message(failed_pulls) if failed_pulls.any?)
   end
 
   def show
@@ -19,6 +20,17 @@ class ScansController < ApplicationController
   end
 
   private
+
+    def pull_repos
+      return [] unless Setting.current.pull_before_scan
+
+      Kamander::Kamal::RepoUpdater.new(scan_root: Setting.current.expanded_scan_root).call
+    end
+
+    def pull_failure_message(failures)
+      "Couldn't update #{failures.map { |failure| "#{File.basename(failure.repo_path)} (#{failure.message.lines.first&.strip})" }.join("; ")}. " \
+        "Those were scanned as they are."
+    end
 
     def run_scan
       Kamander::Kamal::ConfigScanner.new(scan_root: Setting.current.expanded_scan_root).call
